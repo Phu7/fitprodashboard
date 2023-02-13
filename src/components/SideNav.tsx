@@ -9,7 +9,6 @@ import {
   IoBagHandleOutline,
   IoOptions,
 } from "react-icons/io5";
-import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { auth } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
