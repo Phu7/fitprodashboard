@@ -273,21 +273,21 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   useEffect(() => {
     getMonths();
     getYears();
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     getPayments();
-  }, [currentMonth, currentYear]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentMonth, currentYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={4}/>
+          <ExpandedSideNav navIndex={4} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={4}/>
+          <SideNav navIndex={4} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
@@ -325,7 +325,10 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
               </MenuButton>
               <MenuList>
                 {month?.map((record) => (
-                  <MenuItem key={record.docId} onClick={() => setCurrentMonth(record)}>
+                  <MenuItem
+                    key={record.docId}
+                    onClick={() => setCurrentMonth(record)}
+                  >
                     {record.name}
                   </MenuItem>
                 ))}
@@ -343,25 +346,43 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
               </MenuButton>
               <MenuList>
                 {year?.map((record) => (
-                  <MenuItem key={record.docId} onClick={() => setCurrentYear(record)}>
+                  <MenuItem
+                    key={record.docId}
+                    onClick={() => setCurrentYear(record)}
+                  >
                     {record.value.toString()}
                   </MenuItem>
                 ))}
               </MenuList>
             </Menu>
-            {/* <Spacer />
-              {currentYear.value === new Date().getFullYear() &&
-                currentMonth.value === new Date().getMonth() + 1 && (
-                  <Button
-                    rightIcon={<IoAdd size="26" />}
-                    colorScheme="blackAlpha"
-                    bgColor="black"
-                    variant="solid"
-                    onClick={newPayment}
-                  >
-                    Add
-                  </Button>
-                )} */}
+            {!isMobile ? (
+              <>
+                <Spacer />
+                {currentYear.value === new Date().getFullYear() &&
+                  currentMonth.value === new Date().getMonth() + 1 && (
+                    <Button
+                      rightIcon={<IoAdd size="26" />}
+                      colorScheme="blackAlpha"
+                      bgColor="black"
+                      variant="solid"
+                      onClick={newPayment}
+                    >
+                      {!isMobile ? <Text>Add</Text> : null}
+                    </Button>
+                  )}
+              </>
+            ) : (
+              <>
+                {currentYear.value === new Date().getFullYear() &&
+                  currentMonth.value === new Date().getMonth() + 1 && (
+                    <IconButton
+                      aria-label="Add Product Payment"
+                      icon={<IoAdd />}
+                      onClick={newPayment}
+                    />
+                  )}
+              </>
+            )}
           </HStack>
           {!isMobile ? (
             <Table>
@@ -439,7 +460,10 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   <MenuButton>{selectedMember?.name.first_name}</MenuButton>
                   <MenuList>
                     {members?.map((record) => (
-                      <MenuItem key={record.docId} onClick={() => setSelectedMember(record)}>
+                      <MenuItem
+                        key={record.docId}
+                        onClick={() => setSelectedMember(record)}
+                      >
                         {record.name.first_name}
                       </MenuItem>
                     ))}
@@ -461,7 +485,10 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   <MenuButton>{selectedProduct?.name}</MenuButton>
                   <MenuList>
                     {products?.map((record) => (
-                      <MenuItem key={record.product_id} onClick={() => setSelectedProduct(record)}>
+                      <MenuItem
+                        key={record.product_id}
+                        onClick={() => setSelectedProduct(record)}
+                      >
                         {record.name}
                       </MenuItem>
                     ))}

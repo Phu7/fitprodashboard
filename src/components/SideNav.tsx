@@ -108,6 +108,7 @@ function SideNav({navIndex}: {navIndex: number}) {
           onClick={() => LogOut()}
           width="50px"
         />
+        <Box height={12} />
       </Stack>
     </SimpleGrid>
   );

@@ -401,7 +401,8 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                         cursor: 3,
                       }}
                     >
-                      <Stack direction="column" px={6} py={4}>
+                      <HStack spacing={12}>
+                      <Stack direction="column" px={6} py={4} width="170px">
                         <Text fontSize="md" color="black" fontWeight="bold">
                           {payment.member.name.first_name +
                             " " +
@@ -414,6 +415,15 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                           {payment.status}
                         </Text>
                       </Stack>
+                      {payment.status === "Due" && (
+                        <IconButton
+                        aria-label="Send Reminder Message"
+                        icon={<IoMailUnreadOutline />}
+                        onClick={() =>
+                          sendPaymentReminderMessage(payment)
+                        }
+                      />)}
+                      </HStack>                      
                     </Box>
                   ))}
                 </SimpleGrid>
