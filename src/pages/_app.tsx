@@ -5,7 +5,6 @@ import { extendTheme } from "@chakra-ui/react";
 // 1. import `ChakraProvider` component
 import { ChakraProvider } from "@chakra-ui/react";
 import { useState } from "react";
-import { Provider } from "react-redux";
 import { createContext } from "vm";
 import { AuthContextProvider } from "../context/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";

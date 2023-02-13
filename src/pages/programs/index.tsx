@@ -46,7 +46,6 @@ import {
 } from "react-icons/io5";
 import React, { useEffect, useState } from "react";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
-import { useDispatch, useSelector } from "react-redux";
 import {
   addDoc,
   collection,
