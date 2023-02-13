@@ -20,7 +20,7 @@ interface Template {
   message: string;
 }
 
-function settings() {
+function Settings() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const [smsMessage, setSmsMessage] = useState<Template>();
   const [inputMessage, setInputMessage] = useState<string>();
@@ -94,4 +94,4 @@ function settings() {
   );
 }
 
-export default settings;
+export default Settings;

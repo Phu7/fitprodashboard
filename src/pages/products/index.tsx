@@ -69,7 +69,6 @@ function Products() {
             where("available_stock", "==", 0)
           );
     const querySnapshot = await getDocs(q);
-    console.log(querySnapshot.docs)
     let temp: Array<Product> = [];
     querySnapshot.forEach((doc) => {
       temp.push({
@@ -85,7 +84,7 @@ function Products() {
 
   useEffect(() => {
     getProducts();
-  }, [productAvailability]);
+  }, [productAvailability]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -151,7 +150,7 @@ function Products() {
             </Thead>
             <Tbody>
               {products?.map((product) => (
-                <Tr color="black">
+                <Tr key={product.product_id} color="black">
                   <Td>{product.name}</Td>
                   <Td>{product.price}</Td>
                   <Td>{product.total_stock}</Td>

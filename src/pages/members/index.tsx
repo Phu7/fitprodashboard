@@ -147,7 +147,7 @@ function Members() {
 
   useEffect(() => {
     getMembers();
-  }, [selectedMembershipProgram]);
+  }, [selectedMembershipProgram])// eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -226,7 +226,7 @@ function Members() {
               </Thead>
               <Tbody>
                 {members?.map((member) => (
-                  <Tr color="black">
+                  <Tr color="black" key={member.docId}>
                     <Td>
                       {member.name.first_name + " " + member.name.last_name}
                     </Td>

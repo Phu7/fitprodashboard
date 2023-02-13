@@ -47,7 +47,7 @@ interface MembershipPrograms {
   name: string;
 }
 
-function add() {
+function AddMember() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const router = useRouter();
   const [membershipPrograms, setMembershipPrograms] =
@@ -100,7 +100,6 @@ function add() {
       joining_date : formFields.joining_date,
       membership_program : formFields.membership_program
     })
-    console.log(formFields)
   }
 
   const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -154,18 +153,19 @@ function add() {
 
   useEffect(() => {
     getMembershipPrograms();
-    router.query.formType === "edit" && getEditableMember();
-  }, []);
+    if(router.query.formType === "edit")
+      getEditableMember();
+  }, [])// eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
      {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav />
+          <ExpandedSideNav navIndex={2}/>
         </Box>
       ) : (        
         <Box width="18%" pos="fixed" >
-          <SideNav />
+          <SideNav navIndex={2}/>
         </Box>
       )}
       <Box pl="18%" w="98vw">
@@ -309,4 +309,4 @@ function add() {
   );
 }
 
-export default add;
+export default AddMember;

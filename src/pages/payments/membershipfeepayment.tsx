@@ -252,11 +252,11 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
     getPayments();
     getMonths();
     getYears();
-  }, []);
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     getPayments();
-  }, [currentMonth, currentYear]);
+  }, [currentMonth, currentYear]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -307,7 +307,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                 </MenuButton>
                 <MenuList>
                   {month?.map((record) => (
-                    <MenuItem onClick={() => setCurrentMonth(record)}>
+                    <MenuItem key={record.docId} onClick={() => setCurrentMonth(record)}>
                       {record.name}
                     </MenuItem>
                   ))}
@@ -325,7 +325,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                 </MenuButton>
                 <MenuList>
                   {year?.map((record) => (
-                    <MenuItem onClick={() => setCurrentYear(record)}>
+                    <MenuItem key={record.docId} onClick={() => setCurrentYear(record)}>
                       {record.value.toString()}
                     </MenuItem>
                   ))}
@@ -347,7 +347,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                   </Thead>
                   <Tbody>
                     {payments.map((payment) => (
-                      <Tr color="black">
+                      <Tr key={payment.docId} color="black">
                         {payment.status === "Due" ? (
                           <Td>
                             <IoCloseCircle size="30" color="red" />

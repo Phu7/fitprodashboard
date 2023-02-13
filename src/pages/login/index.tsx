@@ -45,7 +45,7 @@ interface LoginFormFields {
   password: string;
 }
 
-function index() {
+function Login() {
   const router = useRouter();
   const [loginError, setLoginError] = useState<boolean>(false);
   const [formFields, setFormFields] = useState<LoginFormFields>({
@@ -109,10 +109,9 @@ function index() {
             </Text>
             <Spacer />
             <InputGroup>
-              <InputLeftElement
-                pointerEvents="none"
-                children={<IoPerson color="black" />}
-              />
+              <InputLeftElement pointerEvents="none">
+                <IoPerson color="black" />
+              </InputLeftElement>
               <Input
                 name="email"
                 placeholder="Email"
@@ -123,10 +122,9 @@ function index() {
               />
             </InputGroup>
             <InputGroup>
-              <InputLeftElement
-                pointerEvents="none"
-                children={<IoLockClosed color="black" />}
-              />
+              <InputLeftElement pointerEvents="none">
+                <IoLockClosed color="black" />
+              </InputLeftElement>
               <Input
                 name="password"
                 type="password"
@@ -157,4 +155,4 @@ function index() {
   );
 }
 
-export default index;
+export default Login;

@@ -240,7 +240,6 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists() && docSnap.data().available_stock > 0) {
-      console.log("Document data:", docSnap.data());
       await updateDoc(
         doc(database, "products", selectedProduct?.product_id as string),
         {
@@ -274,11 +273,11 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   useEffect(() => {
     getMonths();
     getYears();
-  }, []);
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     getPayments();
-  }, [currentMonth, currentYear]);
+  }, [currentMonth, currentYear]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -326,7 +325,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
               </MenuButton>
               <MenuList>
                 {month?.map((record) => (
-                  <MenuItem onClick={() => setCurrentMonth(record)}>
+                  <MenuItem key={record.docId} onClick={() => setCurrentMonth(record)}>
                     {record.name}
                   </MenuItem>
                 ))}
@@ -344,7 +343,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
               </MenuButton>
               <MenuList>
                 {year?.map((record) => (
-                  <MenuItem onClick={() => setCurrentYear(record)}>
+                  <MenuItem key={record.docId} onClick={() => setCurrentYear(record)}>
                     {record.value.toString()}
                   </MenuItem>
                 ))}
@@ -376,7 +375,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
               </Thead>
               <Tbody>
                 {payments?.map((payment) => (
-                  <Tr color="black">
+                  <Tr key={payment.docId} color="black">
                     <Td>{payment.member.name.first_name}</Td>
                     <Td>{payment.product.name}</Td>
                     <Td>{payment.product.price}</Td>
@@ -440,7 +439,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   <MenuButton>{selectedMember?.name.first_name}</MenuButton>
                   <MenuList>
                     {members?.map((record) => (
-                      <MenuItem onClick={() => setSelectedMember(record)}>
+                      <MenuItem key={record.docId} onClick={() => setSelectedMember(record)}>
                         {record.name.first_name}
                       </MenuItem>
                     ))}
@@ -462,7 +461,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   <MenuButton>{selectedProduct?.name}</MenuButton>
                   <MenuList>
                     {products?.map((record) => (
-                      <MenuItem onClick={() => setSelectedProduct(record)}>
+                      <MenuItem key={record.product_id} onClick={() => setSelectedProduct(record)}>
                         {record.name}
                       </MenuItem>
                     ))}

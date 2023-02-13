@@ -2,7 +2,7 @@ import { useState } from "react";
 import MembershipFeePayment from "./membershipfeepayment";
 import ProductPayment from "./productpayment";
 
-function payments() {
+function Payments() {
   const [paymentType, setPaymentType] = useState<number>(1);
   
   const updatePaymentType = (value:number) => {
@@ -16,4 +16,4 @@ function payments() {
   )
 }
 
-export default payments;
+export default Payments;

@@ -36,7 +36,7 @@ interface Product {
   available_stock: number;
 }
 
-function add() {
+function AddProduct() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const router = useRouter();
   const [formFields, setFormFields] = useState<Product>({
@@ -88,17 +88,17 @@ function add() {
 
   useEffect(() => {
     router.query.formType === "edit" && getEditableProduct();
-  }, []);
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
      {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav />
+          <ExpandedSideNav  navIndex={3}/>
         </Box>
       ) : (        
         <Box width="18%" pos="fixed" >
-          <SideNav />
+          <SideNav  navIndex={3}/>
         </Box>
       )}
       <Box pl="18%" w="98vw">
@@ -183,4 +183,4 @@ function add() {
   );
 }
 
-export default add;
+export default AddProduct;
