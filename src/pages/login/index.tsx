@@ -6,30 +6,22 @@ import {
   AlertIcon,
   Box,
   Button,
-  Center,
   Flex,
   HStack,
   Input,
   InputGroup,
   InputLeftElement,
-  InputRightElement,
   Show,
   Spacer,
-  Square,
   Stack,
   Text,
-  VStack,
 } from "@chakra-ui/react";
 import {
-  IoCalendarNumber,
-  IoCheckbox,
   IoLockClosed,
   IoPerson,
 } from "react-icons/io5";
 import {
   browserLocalPersistence,
-  getAuth,
-  inMemoryPersistence,
   setPersistence,
   signInWithEmailAndPassword,
 } from "firebase/auth";

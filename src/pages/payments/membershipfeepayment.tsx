@@ -21,7 +21,13 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
-import { IoCheckmarkDone, IoCloseCircle, IoMailUnreadOutline, IoPencil, IoTodayOutline } from "react-icons/io5";
+import {
+  IoCheckmarkDone,
+  IoCloseCircle,
+  IoMailUnreadOutline,
+  IoPencil,
+  IoTodayOutline,
+} from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import {
   IoChevronDownOutline,
@@ -41,6 +47,7 @@ import {
   orderBy,
   query,
   QueryDocumentSnapshot,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
@@ -127,18 +134,8 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
 
       if (membershipProgram.exists()) {
         await addDoc(collection(database, "membership_payments"), {
-          member: {
-            docId: member.id,
-            name: {
-              first_name: member.data().name.first_name,
-              last_name: member.data().name.last_name,
-            },
-            mobile_phone: member.data().mobile_phone,
-          },
-          membership_program: {
-            name: membershipProgram.data().name,
-            price: membershipProgram.data().price,
-          },
+          member:member.data(),
+          membership_program: membershipProgram.data(),
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
           status: "Due",
@@ -222,6 +219,15 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
     return temp[0];
   };
 
+  const validateMobileNumber = (number: Number) => {
+    let expr = /^(0|91)?[6-9][0-9]{9}$/;
+    alert(number);
+    if (expr.test(number.toString())) {
+      return true;
+    }
+    return false;
+  };
+
   const sendPaymentReminderMessage = async (payment: Payment) => {
     const templateMessage: Template = await getSMSTemplate();
     const APIKEY =
@@ -231,47 +237,59 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       payment.member.name.first_name +
       " Your fee payment for the month is pending.";
     const mobile_phone = payment.member.mobile_phone;
-    const messageContent =
-      "https://www.fast2sms.com/dev/bulkV2?authorization=" +
-      APIKEY +
-      "&message=" +
-      templateMessage.message +
-      "&language=english&route=v3&numbers=" +
-      mobile_phone +
-      "&flash=0";
-    try {
-      axios
-        .get(messageContent)
-        .then((response) => console.log(response.request.response));
-    } catch (error) {
-      console.log(error);
+    if (validateMobileNumber(mobile_phone)) {
+      // const messageContent =
+      //   "https://www.fast2sms.com/dev/bulkV2?authorization=" +
+      //   APIKEY +
+      //   "&message=" +
+      //   templateMessage.message +
+      //   "&language=english&route=v3&numbers=" +
+      //   mobile_phone +
+      //   "&flash=0";
+      // try {
+      //   axios
+      //     .get(messageContent)
+      //     .then((response) => console.log(response.request.response));
+      // } catch (error) {
+      //   console.log(error);
+      // }
+    }
+    else{
+      alert("Invalid Phone Number");
     }
   };
+
+  async function paid(payment: Payment) {
+    await updateDoc(doc(database, "membership_payments", payment.docId), {
+      status: "Paid",
+    });
+    getPayments();
+  }
 
   useEffect(() => {
     getPayments();
     getMonths();
     getYears();
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     getPayments();
-  }, [currentMonth, currentYear]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentMonth, currentYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={4}/>
+          <ExpandedSideNav navIndex={4} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={4}/>
+          <SideNav navIndex={4} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
         <Stack direction="column" spacing={8} px={[2, null, 10]} py={10}>
-        <Text as="b" fontSize="2xl" color="black">
+          <Text as="b" fontSize="2xl" color="black">
             Payments
           </Text>
           <HStack>
@@ -284,10 +302,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                 Membership Fee
               </Text>
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => updatePaymentType(2)}
-            >
+            <Button variant="outline" onClick={() => updatePaymentType(2)}>
               <Text fontSize="sm" color="blackAlpha.400" mx="2">
                 Product
               </Text>
@@ -307,7 +322,10 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                 </MenuButton>
                 <MenuList>
                   {month?.map((record) => (
-                    <MenuItem key={record.docId} onClick={() => setCurrentMonth(record)}>
+                    <MenuItem
+                      key={record.docId}
+                      onClick={() => setCurrentMonth(record)}
+                    >
                       {record.name}
                     </MenuItem>
                   ))}
@@ -325,7 +343,10 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                 </MenuButton>
                 <MenuList>
                   {year?.map((record) => (
-                    <MenuItem key={record.docId} onClick={() => setCurrentYear(record)}>
+                    <MenuItem
+                      key={record.docId}
+                      onClick={() => setCurrentYear(record)}
+                    >
                       {record.value.toString()}
                     </MenuItem>
                   ))}
@@ -334,74 +355,80 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
             </HStack>
           </Stack>
           {payments != null && payments.length > 0 ? (
-              !isMobile ? (
-                <Table>
-                  <Thead>
-                    <Tr>
-                      <Th></Th>
-                      <Th>MEMBER</Th>
-                      <Th>DUE</Th>
-                      <Th>STATUS</Th>
-                      <Th>REMINDER</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {payments.map((payment) => (
-                      <Tr key={payment.docId} color="black">
-                        {payment.status === "Due" ? (
-                          <Td>
-                            <IoCloseCircle size="30" color="red" />
-                          </Td>
-                        ) : (
-                          <Td>
-                            <IoCheckmarkDone size="30" color="green" />
-                          </Td>
-                        )}
+            !isMobile ? (
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th></Th>
+                    <Th>MEMBER</Th>
+                    <Th>DUE</Th>
+                    <Th>STATUS</Th>
+                    <Th w="12">REMINDER</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {payments.map((payment) => (
+                    <Tr key={payment.docId} color="black">
+                      {payment.status === "Due" ? (
                         <Td>
-                          {payment.member.name.first_name +
-                            " " +
-                            payment.member.name.last_name}
+                          <IoCloseCircle size="30" color="red" />
                         </Td>
-                        <Td>{payment.membership_program.price.toString()}</Td>
-                        <Td>{payment.status}</Td>
-                        {payment.status === "Due" ? (
-                          <Td>
-                            <Button
-                              leftIcon={<IoMailUnreadOutline size="20" />}
-                              colorScheme="blackAlpha"
-                              bgColor="black"
-                              variant="solid"
-                              p="6"
-                              onClick={() =>
-                                sendPaymentReminderMessage(payment)
-                              }
-                            >
-                              Send
-                            </Button>
-                          </Td>
-                        ) : (
-                          <></>
-                        )}
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              ) : (
-                <SimpleGrid columns={1} spacing={4}>
-                  {payments?.map((payment) => (
-                    <Box
-                      key={payment.docId}
-                      display="flex"
-                      alignItems="center"
-                      borderRadius="xl"
-                      boxShadow="2xl"
-                      _hover={{
-                        boxShadow: "xl",
-                        color: "gray",
-                        cursor: 3,
-                      }}
-                    >
-                      <HStack spacing={12}>
+                      ) : (
+                        <Td>
+                          <IoCheckmarkDone size="30" color="green" />
+                        </Td>
+                      )}
+                      <Td>
+                        {payment.member.name.first_name +
+                          " " +
+                          payment.member.name.last_name}
+                      </Td>
+                      <Td>{payment.membership_program.price.toString()}</Td>
+                      <Td>{payment.status}</Td>
+                      {payment.status === "Due" ? (
+                        <Td>
+                          <Button
+                            w="28"
+                            leftIcon={<IoMailUnreadOutline size="20" />}
+                            p="6"
+                            onClick={() => sendPaymentReminderMessage(payment)}
+                            mb="1"
+                          >
+                            Send
+                          </Button>
+                          <Button
+                            w="28"
+                            leftIcon={<IoCheckmarkDone size="20" />}
+                            py="6"
+                            onClick={() => paid(payment)}
+                            mt="1"
+                          >
+                            Paid
+                          </Button>
+                        </Td>
+                      ) : (
+                        <></>
+                      )}
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            ) : (
+              <SimpleGrid columns={1} spacing={4}>
+                {payments?.map((payment) => (
+                  <Box
+                    key={payment.docId}
+                    display="flex"
+                    alignItems="center"
+                    borderRadius="xl"
+                    boxShadow="2xl"
+                    _hover={{
+                      boxShadow: "xl",
+                      color: "gray",
+                      cursor: 3,
+                    }}
+                  >
+                    <HStack spacing={12}>
                       <Stack direction="column" px={6} py={4} width="170px">
                         <Text fontSize="md" color="black" fontWeight="bold">
                           {payment.member.name.first_name +
@@ -415,41 +442,47 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                           {payment.status}
                         </Text>
                       </Stack>
-                      {payment.status === "Due" && (
-                        <IconButton
-                        aria-label="Send Reminder Message"
-                        icon={<IoMailUnreadOutline />}
-                        onClick={() =>
-                          sendPaymentReminderMessage(payment)
-                        }
-                      />)}
-                      </HStack>                      
-                    </Box>
-                  ))}
-                </SimpleGrid>
-              )
-            ) : currentYear.value === new Date().getFullYear() &&
-              currentMonth.value === new Date().getMonth() + 1 ? (
-              <Center pt="100">
-                <Button
-                  size="lg"
-                  leftIcon={<IoTodayOutline size="26" />}
-                  colorScheme="blackAlpha"
-                  bgColor="black"
-                  variant="solid"
-                  onClick={() => generatePaymentStatements()}
-                >
-                  Generate Payment Statements
-                </Button>
-              </Center>
-            ) : (
-              <Center pt="100">
-                <VStack>
-                  <IoCloseCircle size={40} color="red" />
-                  <Text>Payment Details not available</Text>
-                </VStack>
-              </Center>
-            )}
+                      {payment.status === "Due" ? (
+                        <VStack>
+                          <IconButton
+                            aria-label="Send Reminder Message"
+                            icon={<IoMailUnreadOutline />}
+                            onClick={() => sendPaymentReminderMessage(payment)}
+                          />
+                          <IconButton
+                            aria-label="Send Reminder Message"
+                            icon={<IoCheckmarkDone />}
+                            onClick={() => paid(payment)}
+                          />
+                        </VStack>
+                      ) : null}
+                    </HStack>
+                  </Box>
+                ))}
+              </SimpleGrid>
+            )
+          ) : currentYear.value === new Date().getFullYear() &&
+            currentMonth.value === new Date().getMonth() + 1 ? (
+            <Center pt="100">
+              <Button
+                size="lg"
+                leftIcon={<IoTodayOutline size="26" />}
+                colorScheme="blackAlpha"
+                bgColor="black"
+                variant="solid"
+                onClick={() => generatePaymentStatements()}
+              >
+                Generate Payment Statements
+              </Button>
+            </Center>
+          ) : (
+            <Center pt="100">
+              <VStack>
+                <IoCloseCircle size={40} color="red" />
+                <Text>Payment Details not available</Text>
+              </VStack>
+            </Center>
+          )}
         </Stack>
       </Box>
     </>

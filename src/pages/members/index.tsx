@@ -32,7 +32,7 @@ import {
 } from "react-icons/io5";
 import React, { useEffect, useState } from "react";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
@@ -126,7 +126,7 @@ function Members() {
 
   async function getMembershipPrograms() {
     const querySnapshot = await getDocs(
-      collection(database, "membership_programs")
+      query(collection(database, "membership_programs"), orderBy("name"))
     );
     let temp: Array<MembershipPrograms> = [];
     querySnapshot.forEach((doc) => {
@@ -146,17 +146,17 @@ function Members() {
 
   useEffect(() => {
     getMembers();
-  }, [selectedMembershipProgram])// eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedMembershipProgram]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={2}/>
+          <ExpandedSideNav navIndex={2} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={2}/>
+          <SideNav navIndex={2} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
@@ -189,27 +189,36 @@ function Members() {
               </MenuList>
             </Menu>
             <Spacer />
-            {/* <IconButton
-              colorScheme="blackAlpha"
-              bgColor="blackAlpha.100"
-              color="blackAlpha.600"
-              aria-label="Search database"
-              icon={<IoSearchOutline size={20} />}
-            /> */}
-            <Button
-              rightIcon={<IoAdd size="26" />}
-              colorScheme="blackAlpha"
-              bgColor="black"
-              variant="solid"
-              onClick={() =>
-                router.push({
-                  pathname: "../members/add",
-                  query: { formType: "new", memberId: "" },
-                })
-              }
-            >
-              Add
-            </Button>
+            {!isMobile ? (
+              <Button
+                rightIcon={<IoAdd size="26" />}
+                colorScheme="blackAlpha"
+                bgColor="black"
+                variant="solid"
+                onClick={() =>
+                  router.push({
+                    pathname: "../members/add",
+                    query: { formType: "new", memberId: "" },
+                  })
+                }
+              >
+                Add
+              </Button>
+            ) : (
+              <IconButton
+                aria-label="Add Product Payment"
+                icon={<IoAdd size={24} />}
+                colorScheme="blackAlpha"
+                bgColor="black"
+                variant="solid"
+                onClick={() =>
+                  router.push({
+                    pathname: "../members/add",
+                    query: { formType: "new", memberId: "" },
+                  })
+                }
+              />
+            )}
           </HStack>
           {!isMobile ? (
             <Table>
@@ -291,7 +300,7 @@ function Members() {
                     </Text>
                     <Text fontSize="sm" color="black">
                       {member.address.city +
-                        ", " + 
+                        ", " +
                         member.address.state +
                         ", " +
                         member.address.country}
@@ -300,7 +309,8 @@ function Members() {
                       {"Phone : " + member.mobile_phone}
                     </Text>
                     <Text fontSize="sm" color="black">
-                      {"Joined On : " + member.joining_date.getDate() +
+                      {"Joined On : " +
+                        member.joining_date.getDate() +
                         "-" +
                         member.joining_date.getMonth() +
                         "-" +

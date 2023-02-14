@@ -55,7 +55,7 @@ function Products() {
   const [productAvailability, setProductAvailability] =
     useState<string>("In Stock");
   const [products, setProducts] = useState<Array<Product>>();
-  const router = useRouter()
+  const router = useRouter();
 
   async function getProducts() {
     const q =
@@ -84,17 +84,17 @@ function Products() {
 
   useEffect(() => {
     getProducts();
-  }, [productAvailability]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [productAvailability]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={3}/>
+          <ExpandedSideNav navIndex={3} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={3}/>
+          <SideNav navIndex={3} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
@@ -127,49 +127,78 @@ function Products() {
               </MenuList>
             </Menu>
             <Spacer />
-            <Button
-              rightIcon={<IoAdd size="26" />}
-              colorScheme="blackAlpha"
-              bgColor="black"
-              variant="solid"
-              onClick={() =>  router.push({pathname: '../products/add', query: { formType: 'new', productId: ''}})}
-            >
-              Add
-            </Button>
+            {!isMobile ? (
+              <Button
+                rightIcon={<IoAdd size="26" />}
+                colorScheme="blackAlpha"
+                bgColor="black"
+                variant="solid"
+                onClick={() =>
+                  router.push({
+                    pathname: "../products/add",
+                    query: { formType: "new", productId: "" },
+                  })
+                }
+              >
+                Add
+              </Button>
+            ) : (
+              <IconButton
+                aria-label="Add Product Payment"
+                icon={<IoAdd size={24} />}
+                colorScheme="blackAlpha"
+                bgColor="black"
+                variant="solid"
+                onClick={() =>
+                  router.push({
+                    pathname: "../products/add",
+                    query: { formType: "new", productId: "" },
+                  })
+                }
+              />
+            )}
           </HStack>
           {!isMobile ? (
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>Product</Th>
-                <Th>PRICE</Th>
-                <Th>Total Stock</Th>
-                <Th>Available Stock</Th>
-                <Th w="20"></Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {products?.map((product) => (
-                <Tr key={product.product_id} color="black">
-                  <Td>{product.name}</Td>
-                  <Td>{product.price}</Td>
-                  <Td>{product.total_stock}</Td>
-                  <Td>{product.available_stock}</Td>
-                  <Td>
-                    <Button
-                      rightIcon={<IoPencil size="16" />}
-                      colorScheme="blackAlpha"
-                      variant="outline"
-                      onClick={() => router.push({pathname: '../products/add', query: { formType: 'edit', productId: product.product_id}})}
-                    >
-                      Edit
-                    </Button>
-                  </Td>
+            <Table>
+              <Thead>
+                <Tr>
+                  <Th>Product</Th>
+                  <Th>PRICE</Th>
+                  <Th>Total Stock</Th>
+                  <Th>Available Stock</Th>
+                  <Th w="20"></Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>) : 
-          (
+              </Thead>
+              <Tbody>
+                {products?.map((product) => (
+                  <Tr key={product.product_id} color="black">
+                    <Td>{product.name}</Td>
+                    <Td>{product.price}</Td>
+                    <Td>{product.total_stock}</Td>
+                    <Td>{product.available_stock}</Td>
+                    <Td>
+                      <Button
+                        rightIcon={<IoPencil size="16" />}
+                        colorScheme="blackAlpha"
+                        variant="outline"
+                        onClick={() =>
+                          router.push({
+                            pathname: "../products/add",
+                            query: {
+                              formType: "edit",
+                              productId: product.product_id,
+                            },
+                          })
+                        }
+                      >
+                        Edit
+                      </Button>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          ) : (
             <SimpleGrid columns={1} spacing={4}>
               {products?.map((product) => (
                 <Box
@@ -183,7 +212,15 @@ function Products() {
                     color: "gray",
                     cursor: 3,
                   }}
-                  onClick={() => router.push({pathname: '../products/add', query: { formType: 'edit', productId: product.product_id}})}
+                  onClick={() =>
+                    router.push({
+                      pathname: "../products/add",
+                      query: {
+                        formType: "edit",
+                        productId: product.product_id,
+                      },
+                    })
+                  }
                 >
                   <Stack direction="column" px={6} py={4}>
                     <Text fontSize="md" color="black" fontWeight="bold">

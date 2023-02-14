@@ -377,7 +377,10 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   currentMonth.value === new Date().getMonth() + 1 && (
                     <IconButton
                       aria-label="Add Product Payment"
-                      icon={<IoAdd />}
+                      icon={<IoAdd size={24}/>}
+                      colorScheme="blackAlpha"
+                      bgColor="black"
+                      variant="solid"
                       onClick={newPayment}
                     />
                   )}
