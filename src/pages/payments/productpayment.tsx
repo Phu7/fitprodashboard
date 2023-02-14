@@ -270,6 +270,13 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   //   setSelectedMember(value)
   // }
 
+  async function paid(payment: Payment) {
+    await updateDoc(doc(database, "product_payments", payment.docId), {
+      status: "Paid",
+    });
+    getPayments();
+  }
+
   useEffect(() => {
     getMonths();
     getYears();
@@ -377,7 +384,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   currentMonth.value === new Date().getMonth() + 1 && (
                     <IconButton
                       aria-label="Add Product Payment"
-                      icon={<IoAdd size={24}/>}
+                      icon={<IoAdd size={24} />}
                       colorScheme="blackAlpha"
                       bgColor="black"
                       variant="solid"
@@ -395,6 +402,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   <Th>PRODUCT</Th>
                   <Th>DUE</Th>
                   <Th>STATUS</Th>
+                  <Th w="12"></Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -404,6 +412,20 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                     <Td>{payment.product.name}</Td>
                     <Td>{payment.product.price}</Td>
                     <Td>{payment.status}</Td>
+                    {payment.status === "Due" ? (
+                      <Td>
+                        <Button
+                          w="28"
+                          leftIcon={<IoCheckmarkDone size="20" />}
+                          py="6"
+                          mt="1"
+                        >
+                          Paid
+                        </Button>
+                      </Td>
+                    ) : (
+                      <></>
+                    )}
                   </Tr>
                 ))}
               </Tbody>
@@ -423,20 +445,31 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                     cursor: 3,
                   }}
                 >
-                  <Stack direction="column" px={6} py={4}>
-                    <Text fontSize="md" color="black" fontWeight="bold">
-                      {payment.member.name.first_name}
-                    </Text>
-                    <Text fontSize="sm" color="black">
-                      {payment.product.name}
-                    </Text>
-                    <Text fontSize="sm" color="black">
-                      {payment.product.price}
-                    </Text>
-                    <Text fontSize="sm" color="black">
-                      {payment.status}
-                    </Text>
-                  </Stack>
+                  <HStack spacing={12}>
+                    <Stack direction="column" px={6} py={4}>
+                      <Text fontSize="md" color="black" fontWeight="bold">
+                        {payment.member.name.first_name}
+                      </Text>
+                      <Text fontSize="sm" color="black">
+                        {payment.product.name}
+                      </Text>
+                      <Text fontSize="sm" color="black">
+                        {payment.product.price}
+                      </Text>
+                      <Text fontSize="sm" color="black">
+                        {payment.status}
+                      </Text>
+                    </Stack>
+                    {payment.status === "Due" ? (
+                      <VStack>
+                        <IconButton
+                          aria-label="Send Reminder Message"
+                          icon={<IoCheckmarkDone />}
+                          onClick={() => paid(payment)}
+                        />
+                      </VStack>
+                    ) : null}
+                  </HStack>
                 </Box>
               ))}
             </SimpleGrid>

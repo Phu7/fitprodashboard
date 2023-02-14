@@ -1,4 +1,12 @@
-import { Box, Button, Container, SimpleGrid, Spacer, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Container,
+  SimpleGrid,
+  Spacer,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import React from "react";
 import {
   IoBarChartOutline,
@@ -14,19 +22,11 @@ import { auth } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
 import Image from "next/image";
 import BFITImage from "../../public/BFitLogo.svg";
+import { useAuth } from "../context/AuthContext";
 
-function SideNav({navIndex}: {navIndex: number}) {
+function SideNav({ navIndex }: { navIndex: number }) {
+  const { logout } = useAuth();
   const router = useRouter();
-
-  const LogOut = () => {
-    signOut(auth)
-      .then(() => {
-        router.replace("../login");
-      })
-      .catch((error) => {
-        // An error happened.
-      });
-  };
 
   return (
     <SimpleGrid
@@ -37,7 +37,7 @@ function SideNav({navIndex}: {navIndex: number}) {
       px="4"
       borderColor="gray.200"
     >
-      <Stack direction="column" spacing={4} display="flex" flex={1} >
+      <Stack direction="column" spacing={4} display="flex" flex={1}>
         <Button
           leftIcon={<IoOptions size="26" />}
           colorScheme={navIndex === 1 ? "" : "blackAlpha"}
@@ -105,7 +105,7 @@ function SideNav({navIndex}: {navIndex: number}) {
           variant="ghost"
           height="6%"
           pl="25px"
-          onClick={() => LogOut()}
+          onClick={logout}
           width="50px"
         />
         <Box height={12} />

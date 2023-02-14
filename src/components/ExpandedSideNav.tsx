@@ -1,7 +1,6 @@
-import { Box, Button, Container, SimpleGrid, Spacer, Stack, Text } from "@chakra-ui/react";
-import React, { useEffect } from "react";
+import { Button, SimpleGrid, Spacer, Stack, Text } from "@chakra-ui/react";
+import React from "react";
 import {
-  IoBarChartOutline,
   IoPeopleOutline,
   IoCardOutline,
   IoSettingsOutline,
@@ -10,22 +9,11 @@ import {
   IoOptions,
 } from "react-icons/io5";
 import { useRouter } from "next/router";
-import { auth } from "../firebaseConfig";
-import { signOut } from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
 
 function ExpandedSideNav({navIndex}: {navIndex: number}) {
-  //const navIndex = useSelector((state: RootState) => state.navIndex.value);
+  const { logout } = useAuth();
   const router = useRouter();
-
-  const LogOut = () => {
-    signOut(auth)
-      .then(() => {
-        router.replace("../login");
-      })
-      .catch((error) => {
-        // An error happened.
-      });
-  };
   
   return (
     <SimpleGrid
@@ -38,22 +26,6 @@ function ExpandedSideNav({navIndex}: {navIndex: number}) {
       borderColor="gray.200"
     >
       <Stack direction="column" spacing={4} display="flex" flex={1}>
-        {/* <Container w="250px" mb="10">
-          <Image src={BFITImage} height="70px" width="120px"/>
-          Dashboard
-        </Container> */}
-        {/* <Button
-          leftIcon={<IoBarChartOutline size='26'/>}
-          colorScheme={navIndex===1?"":"blackAlpha"}
-          bgColor={navIndex===1?"black":""}
-          variant={navIndex===1?"solid":"ghost"}
-          height="10%"
-          iconSpacing='8'
-          onClick={() => {dispatch(setNavIndex(1));router.replace('../dashboard')}}
-          pr="14"
-        >
-          <Text fontSize='xl'>Dashboard</Text>
-        </Button> */}
         <Button
           leftIcon={<IoOptions size="26" />}
           colorScheme={navIndex === 1 ? "" : "blackAlpha"}
@@ -132,7 +104,7 @@ function ExpandedSideNav({navIndex}: {navIndex: number}) {
           height="10%"
           iconSpacing="8"
           pr="14"
-          onClick={() => LogOut()}
+          onClick={logout}
         >
           <Text fontSize="xl">Logout</Text>
         </Button>

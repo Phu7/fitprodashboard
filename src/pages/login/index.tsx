@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import Lottie from "lottie-react";
 import Gym from "../../../public/gym.json";
+import { IoLockClosed, IoPerson } from "react-icons/io5";
+import { auth } from "../../firebaseConfig";
+import { useRouter } from "next/router";
+import { LoginFormFields } from "../../types";
+import { lottieStyle } from "../../styles/loginStyles";
 import {
   Alert,
   AlertIcon,
@@ -17,29 +22,15 @@ import {
   Text,
 } from "@chakra-ui/react";
 import {
-  IoLockClosed,
-  IoPerson,
-} from "react-icons/io5";
-import {
   browserLocalPersistence,
   setPersistence,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
-import { useRouter } from "next/router";
-
-const style = {
-  height: 600,
-};
-
-interface LoginFormFields {
-  email: string;
-  password: string;
-}
 
 function Login() {
   const router = useRouter();
   const [loginError, setLoginError] = useState<boolean>(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState<string>();
   const [formFields, setFormFields] = useState<LoginFormFields>({
     email: "",
     password: "",
@@ -51,28 +42,26 @@ function Login() {
   };
 
   const Login = async () => {
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => {
-        signInWithEmailAndPassword(
-          auth,
-          formFields.email,
-          formFields.password
-        ).then((userCredential) => {
-          // Signed in
+    setPersistence(auth, browserLocalPersistence).then(() => {
+      signInWithEmailAndPassword(auth, formFields.email, formFields.password)
+        .then((userCredential) => {
           const user = userCredential.user;
           if (user !== null) {
             setLoginError(false);
             router.replace("../programs");
           }
-          //alert("Use signed in successfully")
-          // ...
+        })
+        .catch((error) => {
+          setLoginError(true);
+          const errorCode = error.code;
+          if (error.code === "auth/user-not-found")
+            setLoginErrorMessage("User not found");
+          if (error.code === "auth/invalid-email")
+            setLoginErrorMessage("Invalid Email");
+          if (error.code === "auth/wrong-password")
+            setLoginErrorMessage("Password Incorrect");
         });
-      })
-      .catch((error) => {
-        setLoginError(true);
-        const errorCode = error.code;
-        const errorMessage = error.message;
-      });
+    });
   };
 
   return (
@@ -80,13 +69,13 @@ function Login() {
       {loginError && (
         <Alert status="error">
           <AlertIcon />
-          Incorrect Email and Password.
+          {loginErrorMessage}
         </Alert>
       )}
       <Flex direction={{ base: "column", sm: "column", md: "row", lg: "row" }}>
         <Show above="sm">
           <Box flex="1" pt="10">
-            <Lottie animationData={Gym} style={style} />
+            <Lottie animationData={Gym} style={lottieStyle} />
           </Box>
         </Show>
         <Box flex="1">

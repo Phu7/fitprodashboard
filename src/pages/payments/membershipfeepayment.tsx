@@ -3,12 +3,21 @@ import {
   Box,
   Button,
   Center,
+  FormControl,
+  FormLabel,
   HStack,
   IconButton,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   SimpleGrid,
   Spacer,
   Stack,
@@ -19,6 +28,7 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
   VStack,
 } from "@chakra-ui/react";
 import {
@@ -55,6 +65,7 @@ import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
 import axios from "axios";
+import products from "../products";
 
 interface Name {
   first_name: string;
@@ -64,7 +75,7 @@ interface Name {
 interface Member {
   docId: string;
   name: Name;
-  mobile_phone: Number;
+  mobile_phone?: Number;
 }
 
 interface Template {
@@ -74,6 +85,7 @@ interface Template {
 }
 
 interface MembershipProgram {
+  docId?: string;
   name: string;
   price: Number;
 }
@@ -104,8 +116,13 @@ interface PaymentTypeProps {
 
 function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
+  const [members, setMembers] = useState<Array<Member>>();
+  const [selectedMember, setSelectedMember] = useState<Member>();
+  const [programs, setPrograms] = useState<Array<MembershipProgram>>();
+  const [selectedProgram, setSelectedProgram] = useState<MembershipProgram>();
   const [month, setMonth] = useState<Array<Month>>();
   const [year, setYear] = useState<Array<Year>>();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentMonth, setCurrentMonth] = useState<Month>({
     docId: "",
     name: "November",
@@ -144,6 +161,46 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       }
     });
   };
+
+  async function addPayment() {
+    await addDoc(collection(database, "membership_payments"), {
+      member: selectedMember,
+      membership_program: selectedProgram,
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+      status: "Due",
+    });
+    getPayments();
+    onClose();
+  }
+  
+  async function getAllMembers() {
+    const querySnapshot = await getDocs(collection(database, "members"));
+    let temp: Array<any> = [];
+    querySnapshot.forEach((doc) => {
+      temp.push(
+        doc.data()
+      );
+    });
+    setMembers(temp);
+    setSelectedMember(temp[0]);
+  }
+
+  async function getAllPrograms() {
+    const querySnapshot = await getDocs(
+      collection(database, "membership_programs")
+    );
+    let temp: Array<MembershipProgram> = [];
+    querySnapshot.forEach((doc) => {
+      temp.push({
+        docId: doc.id,
+        name: doc.data().name,
+        price: doc.data().price,
+      });
+    });
+    setPrograms(temp);
+    setSelectedProgram(temp[0]);
+  }
 
   async function getPayments() {
     const querySnapshot = await getDocs(
@@ -237,7 +294,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       payment.member.name.first_name +
       " Your fee payment for the month is pending.";
     const mobile_phone = payment.member.mobile_phone;
-    if (validateMobileNumber(mobile_phone)) {
+    if (validateMobileNumber(mobile_phone!)) {
       const messageContent =
         "https://www.fast2sms.com/dev/bulkV2?authorization=" +
         APIKEY +
@@ -258,6 +315,12 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       alert("Invalid Phone Number");
     }
   };
+  
+  function newPayment() {
+    getAllMembers();
+    getAllPrograms();
+    onOpen();
+  }
 
   async function paid(payment: Payment) {
     await updateDoc(doc(database, "membership_payments", payment.docId), {
@@ -352,6 +415,37 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                   ))}
                 </MenuList>
               </Menu>
+              {!isMobile ? (
+              <>
+                <Spacer />
+                {currentYear.value === new Date().getFullYear() &&
+                  currentMonth.value === new Date().getMonth() + 1 && (
+                    <Button
+                      rightIcon={<IoAdd size="26" />}
+                      colorScheme="blackAlpha"
+                      bgColor="black"
+                      variant="solid"
+                      onClick={newPayment}
+                    >
+                      {!isMobile ? <Text>Add</Text> : null}
+                    </Button>
+                  )}
+              </>
+            ) : (
+              <>
+                {currentYear.value === new Date().getFullYear() &&
+                  currentMonth.value === new Date().getMonth() + 1 && (
+                    <IconButton
+                      aria-label="Add Product Payment"
+                      icon={<IoAdd size={24}/>}
+                      colorScheme="blackAlpha"
+                      bgColor="black"
+                      variant="solid"
+                      onClick={newPayment}
+                    />
+                  )}
+              </>
+            )}
             </HStack>
           </Stack>
           {payments != null && payments.length > 0 ? (
@@ -485,6 +579,76 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
           )}
         </Stack>
       </Box>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>New Payment</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl>
+              <FormLabel>Member</FormLabel>
+              <Box
+                borderRadius="md"
+                backgroundColor="gray.100"
+                pl="5"
+                pt="3"
+                h={12}
+                w="100%"
+              >
+                <Menu>
+                  <MenuButton>{selectedMember?.name.first_name}</MenuButton>
+                  <MenuList>
+                    {members?.map((record) => (
+                      <MenuItem
+                        key={record.docId}
+                        onClick={() => setSelectedMember(record)}
+                      >
+                        {record.name.first_name}
+                      </MenuItem>
+                    ))}
+                  </MenuList>
+                </Menu>
+              </Box>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Program</FormLabel>
+              <Box
+                borderRadius="md"
+                backgroundColor="gray.100"
+                pl="5"
+                pt="3"
+                h={12}
+                w="100%"
+              >
+                <Menu>
+                  <MenuButton>{selectedProgram?.name}</MenuButton>
+                  <MenuList>
+                    {programs?.map((record) => (
+                      <MenuItem
+                        key={record.docId}
+                        onClick={() => setSelectedProgram(record)}
+                      >
+                        {record.name}
+                      </MenuItem>
+                    ))}
+                  </MenuList>
+                </Menu>
+              </Box>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => {
+                addPayment();
+              }}
+            >
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
