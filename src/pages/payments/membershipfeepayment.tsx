@@ -238,21 +238,21 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       " Your fee payment for the month is pending.";
     const mobile_phone = payment.member.mobile_phone;
     if (validateMobileNumber(mobile_phone)) {
-      // const messageContent =
-      //   "https://www.fast2sms.com/dev/bulkV2?authorization=" +
-      //   APIKEY +
-      //   "&message=" +
-      //   templateMessage.message +
-      //   "&language=english&route=v3&numbers=" +
-      //   mobile_phone +
-      //   "&flash=0";
-      // try {
-      //   axios
-      //     .get(messageContent)
-      //     .then((response) => console.log(response.request.response));
-      // } catch (error) {
-      //   console.log(error);
-      // }
+      const messageContent =
+        "https://www.fast2sms.com/dev/bulkV2?authorization=" +
+        APIKEY +
+        "&message=" +
+        templateMessage.message +
+        "&language=english&route=v3&numbers=" +
+        mobile_phone +
+        "&flash=0";
+      try {
+        axios
+          .get(messageContent)
+          .then((response) => console.log(response.request.response));
+      } catch (error) {
+        console.log(error);
+      }
     }
     else{
       alert("Invalid Phone Number");
