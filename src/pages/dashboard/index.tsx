@@ -22,29 +22,110 @@ import {
   HStack,
   SimpleGrid,
   VStack,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import {
   IoChevronDownOutline,
-  IoSearchOutline,
+  IoBarChart,
   IoFilter,
   IoAdd,
 } from "react-icons/io5";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
+import SideNav from "../../components/SideNav";
+import { collection, getDocs, query } from "firebase/firestore";
+import { database } from "../../firebaseConfig";
+
+interface Name {
+  first_name: string;
+  last_name: string;
+}
+
+interface Address {
+  city: string;
+  state: string;
+  country: string;
+}
+
+interface MembershipPrograms {
+  membershipProgramId: string;
+  name: string;
+}
+
+interface Member {
+  docId: string;
+  name: Name;
+  email: string;
+  mobile_phone: number;
+  joining_date: Date;
+  address: Address;
+  membership_program: MembershipPrograms;
+}
 
 function Dashboard() {
+  const [isMobile] = useMediaQuery("(max-width: 768px)");
   const [filterType, setFilterType] = useState<number>(1);
   const [month, setMonth] = useState<number>(1);
   const [year, setYear] = useState<number>(1);
+  const [totalMembers, setTotalMembers] = useState<number>(0);
+  const [generalTrainedMembers, setGeneralTrainedMembers] = useState<number>(0);
+  const [personalTrainedMembers, setPersonalTrainedMembers] = useState<number>(0);
+
+  async function getAllMembers() {
+    const q = query(collection(database, "members"));
+    const querySnapshot = await getDocs(q);
+    let temp: Array<Member> = [];
+    querySnapshot.forEach((doc) => {
+      temp.push({
+        docId: doc.id,
+        name: {
+          first_name: doc.data().name.first_name,
+          last_name: doc.data().name.last_name,
+        },
+        email: doc.data().email,
+        mobile_phone: doc.data().mobile_phone,
+        joining_date: new Date(doc.data().joining_date),
+        address: {
+          city: doc.data().address.city,
+          state: doc.data().address.state,
+          country: doc.data().address.country,
+        },
+        membership_program: doc.data().membership_program
+      });
+    });
+
+    let personalTrainedMembers = temp.filter(member => {
+      return member.membership_program.name == "Personal Training"
+    })
+    let generalTrainedMembers = temp.filter(member => {
+      return member.membership_program.name == "General Training"
+    })    
+    setPersonalTrainedMembers(personalTrainedMembers.length)
+    setGeneralTrainedMembers(generalTrainedMembers.length)
+    setTotalMembers(temp.length)
+  }
+
+  useEffect(() => {
+    getAllMembers()
+  },[])
 
   return (
     <>
+      {!isMobile ? (
+        <Box width="18%" pos="fixed">
+          <ExpandedSideNav navIndex={1} />
+        </Box>
+      ) : (
+        <Box width="18%" pos="fixed">
+          <SideNav navIndex={1} />
+        </Box>
+      )}
       <Box pl="18%" w="98vw">
         <Stack direction="column" spacing={6} p="10">
           <Text as="b" fontSize="2xl" color="black">
             Dashboard
           </Text>
-          <HStack spacing={4}>
+          {/* <HStack spacing={4}>
             <Menu>
               <MenuButton
                 isActive="true"
@@ -90,41 +171,56 @@ function Dashboard() {
                 <MenuItem onClick={() => setYear(2)}>2021</MenuItem>
               </MenuList>
             </Menu>
-          </HStack>
+          </HStack> */}
           <SimpleGrid
             minChildWidth="120px"
-            spacing="80px"
-            height="450"
-            py="120"
-            px="10"
+            spacing="10"
+            height={{ base: "600", sm: "450" }}
+            py={{ base: "10", sm: "120" }}
+            px={{ base: "2", sm: "10" }}
           >
-            <Box bgColor="purple.200" height="100%" borderRadius="3xl" boxShadow="2xl">
+            <Box
+              bgColor="purple.200"
+              height="100%"
+              borderRadius="3xl"
+              boxShadow="2xl"
+            >
               <VStack height="100%" justifyContent="center">
                 <Text fontSize="xl" color="blackAlpha.600">
                   Total Members
                 </Text>
                 <Text as="b" fontSize="5xl">
-                  32
+                  {totalMembers}
                 </Text>
               </VStack>
             </Box>
-            <Box bgColor="teal"  height="100%" borderRadius="3xl" boxShadow="2xl">
+            <Box
+              bgColor="teal"
+              height="100%"
+              borderRadius="3xl"
+              boxShadow="2xl"
+            >
               <VStack height="100%" justifyContent="center">
                 <Text fontSize="xl" color="blackAlpha.600">
-                  Total Payment
+                  Personal Training
                 </Text>
                 <Text as="b" fontSize="5xl">
-                  40K
+                  {personalTrainedMembers}
                 </Text>
               </VStack>
             </Box>
-            <Box bgColor="red.200" height="100%" borderRadius="3xl" boxShadow="2xl">
+            <Box
+              bgColor="red.200"
+              height="100%"
+              borderRadius="3xl"
+              boxShadow="2xl"
+            >
               <VStack height="100%" justifyContent="center">
                 <Text fontSize="xl" color="blackAlpha.600">
-                  Pending Payment
+                  General Training
                 </Text>
                 <Text as="b" fontSize="5xl">
-                  30K
+                  {generalTrainedMembers}
                 </Text>
               </VStack>
             </Box>

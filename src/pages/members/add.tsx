@@ -57,7 +57,7 @@ interface Member {
   address_city: string;
   address_state: string;
   address_country: string;
-  membership_program: string;
+  membership_program: MembershipPrograms;
 }
 
 interface MembershipPrograms {
@@ -82,7 +82,10 @@ function AddMember() {
     address_city: "",
     address_state: "",
     address_country: "",
-    membership_program: "",
+    membership_program: {
+      membershipProgramId: "",
+      name: ""
+    },
   });
 
   async function addMember() {
@@ -140,7 +143,7 @@ function AddMember() {
     let currentData = membershipPrograms?.find((obj) => obj.name === value);
     setFormFields((prevState) => ({
       ...prevState,
-      [name]: currentData?.membershipProgramId,
+      [name]: currentData,
     }));
   };
 
@@ -371,7 +374,7 @@ function AddMember() {
                 >
                   {membershipPrograms?.map((program) =>
                     program.membershipProgramId ==
-                    formFields.membership_program ? (
+                    formFields.membership_program.membershipProgramId ? (
                       <option selected>{program.name}</option>
                     ) : (
                       <option>{program.name}</option>

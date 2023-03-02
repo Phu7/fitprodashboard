@@ -90,11 +90,11 @@ function Products() {
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={3} />
+          <ExpandedSideNav navIndex={4} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={3} />
+          <SideNav navIndex={4} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">

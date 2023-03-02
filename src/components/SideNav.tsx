@@ -16,6 +16,7 @@ import {
   IoPowerOutline,
   IoBagHandleOutline,
   IoOptions,
+  IoBarChart,
 } from "react-icons/io5";
 import { useRouter } from "next/router";
 import { auth } from "../firebaseConfig";
@@ -39,10 +40,22 @@ function SideNav({ navIndex }: { navIndex: number }) {
     >
       <Stack direction="column" spacing={4} display="flex" flex={1}>
         <Button
-          leftIcon={<IoOptions size="26" />}
+          leftIcon={<IoBarChart size="26" />}
           colorScheme={navIndex === 1 ? "" : "blackAlpha"}
           bgColor={navIndex === 1 ? "black" : ""}
           variant={navIndex === 1 ? "solid" : "ghost"}
+          height="6%"
+          pl="25px"
+          onClick={() => {
+            router.replace("../dashboard");
+          }}
+          width="50px"
+        />
+        <Button
+          leftIcon={<IoOptions size="26" />}
+          colorScheme={navIndex === 2 ? "" : "blackAlpha"}
+          bgColor={navIndex === 2 ? "black" : ""}
+          variant={navIndex === 2 ? "solid" : "ghost"}
           height="6%"
           pl="25px"
           onClick={() => {
@@ -52,9 +65,9 @@ function SideNav({ navIndex }: { navIndex: number }) {
         />
         <Button
           leftIcon={<IoPeopleOutline size="26" />}
-          colorScheme={navIndex === 2 ? "" : "blackAlpha"}
-          bgColor={navIndex === 2 ? "black" : ""}
-          variant={navIndex === 2 ? "solid" : "ghost"}
+          colorScheme={navIndex === 3 ? "" : "blackAlpha"}
+          bgColor={navIndex === 3 ? "black" : ""}
+          variant={navIndex === 3 ? "solid" : "ghost"}
           height="6%"
           pl="25px"
           onClick={() => {
@@ -64,9 +77,9 @@ function SideNav({ navIndex }: { navIndex: number }) {
         />
         <Button
           leftIcon={<IoBagHandleOutline size="26" />}
-          colorScheme={navIndex === 3 ? "" : "blackAlpha"}
-          bgColor={navIndex === 3 ? "black" : ""}
-          variant={navIndex === 3 ? "solid" : "ghost"}
+          colorScheme={navIndex === 4 ? "" : "blackAlpha"}
+          bgColor={navIndex === 4 ? "black" : ""}
+          variant={navIndex === 4 ? "solid" : "ghost"}
           height="6%"
           pl="25px"
           onClick={() => {
@@ -76,9 +89,9 @@ function SideNav({ navIndex }: { navIndex: number }) {
         />
         <Button
           leftIcon={<IoCardOutline size="26" />}
-          colorScheme={navIndex === 4 ? "" : "blackAlpha"}
-          bgColor={navIndex === 4 ? "black" : ""}
-          variant={navIndex === 4 ? "solid" : "ghost"}
+          colorScheme={navIndex === 5 ? "" : "blackAlpha"}
+          bgColor={navIndex === 5 ? "black" : ""}
+          variant={navIndex === 5 ? "solid" : "ghost"}
           height="6%"
           pl="25px"
           onClick={() => {
@@ -88,9 +101,9 @@ function SideNav({ navIndex }: { navIndex: number }) {
         />
         <Button
           leftIcon={<IoSettingsOutline size="26" />}
-          colorScheme={navIndex === 5 ? "" : "blackAlpha"}
-          bgColor={navIndex === 5 ? "black" : ""}
-          variant={navIndex === 5 ? "solid" : "ghost"}
+          colorScheme={navIndex === 6 ? "" : "blackAlpha"}
+          bgColor={navIndex === 6 ? "black" : ""}
+          variant={navIndex === 6 ? "solid" : "ghost"}
           height="6%"
           pl="25px"
           onClick={() => {

@@ -62,11 +62,11 @@ function Settings() {
     <>
        {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={5}/>
+          <ExpandedSideNav navIndex={6}/>
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={5}/>
+          <SideNav navIndex={6}/>
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }}  w="98vw">

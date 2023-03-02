@@ -100,7 +100,7 @@ function Members() {
       selectedMembershipProgram?.membershipProgramId ?? "";
     const q = query(
       collection(database, "members"),
-      where("membership_program", "==", membershipProgramId)
+      where("membership_program.membershipProgramId", "==", membershipProgramId)
     );
     const querySnapshot = await getDocs(q);
     let temp: Array<Member> = [];
@@ -128,7 +128,10 @@ function Members() {
     const querySnapshot = await getDocs(
       query(collection(database, "membership_programs"), orderBy("name"))
     );
-    let temp: Array<MembershipPrograms> = [];
+    let temp: Array<MembershipPrograms> = [{
+      membershipProgramId: "",
+      name: "All Other Members"
+    }];
     querySnapshot.forEach((doc) => {
       temp.push({
         membershipProgramId: doc.id,
@@ -152,11 +155,11 @@ function Members() {
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={2} />
+          <ExpandedSideNav navIndex={3} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={2} />
+          <SideNav navIndex={3} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">

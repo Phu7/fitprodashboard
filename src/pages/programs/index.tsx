@@ -143,11 +143,11 @@ function Programs() {
       <>
         {!isMobile ? (
           <Box width="18%" pos="fixed">
-            <ExpandedSideNav navIndex={1}/>
+            <ExpandedSideNav navIndex={2}/>
           </Box>
         ) : (
           <Box width="18%" pos="fixed">
-            <SideNav navIndex={1}/>
+            <SideNav navIndex={2}/>
           </Box>
         )}
         <Box pl={{ base: "20%", sm: "18%" }} w="98vw">

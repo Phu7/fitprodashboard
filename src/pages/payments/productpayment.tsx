@@ -95,6 +95,8 @@ interface Payment {
   year: Number;
   quantity: Number;
   status: string;
+  total : Number;
+  due: Number;
 }
 
 interface Month {
@@ -130,6 +132,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     docId: "",
     value: new Date().getFullYear(),
   });
+  const [quantity, setQuanity] = useState<number>(0);
   const [payments, setPayments] = useState<Array<Payment>>();
   const router = useRouter();
 
@@ -185,6 +188,8 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
         year: doc.data().year,
         quantity: doc.data().quantity,
         status: doc.data().status,
+        total: doc.data().total,
+        due: doc.data().due
       });
     });
     setPayments(temp);
@@ -225,6 +230,11 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     );
   }
 
+  const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const { name, value } = e.currentTarget;
+    setQuanity(Number.parseInt(value));
+  };
+
   function newPayment() {
     getAllMembers();
     getAllProducts();
@@ -244,7 +254,8 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
         doc(database, "products", selectedProduct?.product_id as string),
         {
           available_stock:
-            Number.parseInt(docSnap.data().available_stock.toString()) - 1,
+            Number.parseInt(docSnap.data().available_stock.toString()) -
+            quantity,
         }
       );
     } else {
@@ -260,9 +271,13 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       status: "Due",
-      quantity: 1,
+      quantity: quantity,
+      total: selectedProduct != null ? selectedProduct.price * quantity : 0,
+      due: selectedProduct != null ? selectedProduct.price * quantity : 0
     });
     updateProduct();
+    getPayments();
+    onClose();
   }
 
   // const handleOptionSetChange = (e: React.FormEvent<HTMLOptionElement>) => {
@@ -290,11 +305,11 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={4} />
+          <ExpandedSideNav navIndex={5} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={4} />
+          <SideNav navIndex={5} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
@@ -400,6 +415,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                 <Tr>
                   <Th>MEMBER</Th>
                   <Th>PRODUCT</Th>
+                  <Th>Quantity</Th>
                   <Th>DUE</Th>
                   <Th>STATUS</Th>
                   <Th w="12"></Th>
@@ -408,11 +424,26 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
               <Tbody>
                 {payments?.map((payment) => (
                   <Tr key={payment.docId} color="black">
-                    <Td>{payment.member.name.first_name}</Td>
+                    <Td>
+                      <Button
+                        onClick={() =>
+                          router.push({
+                            pathname: "../payments/productpaymentedit",
+                            query: {
+                              formType: "edit",
+                              paymentId: payment.docId,
+                            },
+                          })
+                        }
+                      >
+                        {payment.member.name.first_name}
+                      </Button>
+                    </Td>
                     <Td>{payment.product.name}</Td>
-                    <Td>{payment.product.price}</Td>
+                    <Td>{payment.quantity.toString()}</Td>
+                    <Td>{payment.due.toString()}</Td>
                     <Td>{payment.status}</Td>
-                    {payment.status === "Due" ? (
+                    {/* {payment.status === "Due" ? (
                       <Td>
                         <Button
                           w="28"
@@ -425,7 +456,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                       </Td>
                     ) : (
                       <></>
-                    )}
+                    )} */}
                   </Tr>
                 ))}
               </Tbody>
@@ -454,13 +485,16 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                         {payment.product.name}
                       </Text>
                       <Text fontSize="sm" color="black">
+                        {payment.quantity.toString()}
+                      </Text>
+                      <Text fontSize="sm" color="black">
                         {payment.product.price}
                       </Text>
                       <Text fontSize="sm" color="black">
                         {payment.status}
                       </Text>
                     </Stack>
-                    {payment.status === "Due" ? (
+                    {/* {payment.status === "Due" ? (
                       <VStack>
                         <IconButton
                           aria-label="Send Reminder Message"
@@ -468,7 +502,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                           onClick={() => paid(payment)}
                         />
                       </VStack>
-                    ) : null}
+                    ) : null} */}
                   </HStack>
                 </Box>
               ))}
@@ -531,6 +565,10 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   </MenuList>
                 </Menu>
               </Box>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Quantity</FormLabel>
+              <Input name="quantity" onChange={handleInputChange} />
             </FormControl>
           </ModalBody>
           <ModalFooter>

@@ -123,6 +123,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   const [month, setMonth] = useState<Array<Month>>();
   const [year, setYear] = useState<Array<Year>>();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const router = useRouter();
   const [currentMonth, setCurrentMonth] = useState<Month>({
     docId: "",
     name: "November",
@@ -151,7 +152,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
 
       if (membershipProgram.exists()) {
         await addDoc(collection(database, "membership_payments"), {
-          member:member.data(),
+          member: member.data(),
           membership_program: membershipProgram.data(),
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
@@ -173,14 +174,12 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
     getPayments();
     onClose();
   }
-  
+
   async function getAllMembers() {
     const querySnapshot = await getDocs(collection(database, "members"));
     let temp: Array<any> = [];
     querySnapshot.forEach((doc) => {
-      temp.push(
-        doc.data()
-      );
+      temp.push(doc.data());
     });
     setMembers(temp);
     setSelectedMember(temp[0]);
@@ -310,12 +309,11 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       } catch (error) {
         console.log(error);
       }
-    }
-    else{
+    } else {
       alert("Invalid Phone Number");
     }
   };
-  
+
   function newPayment() {
     getAllMembers();
     getAllPrograms();
@@ -343,11 +341,11 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={4} />
+          <ExpandedSideNav navIndex={5} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={4} />
+          <SideNav navIndex={5} />
         </Box>
       )}
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
@@ -416,36 +414,36 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                 </MenuList>
               </Menu>
               {!isMobile ? (
-              <>
-                <Spacer />
-                {currentYear.value === new Date().getFullYear() &&
-                  currentMonth.value === new Date().getMonth() + 1 && (
-                    <Button
-                      rightIcon={<IoAdd size="26" />}
-                      colorScheme="blackAlpha"
-                      bgColor="black"
-                      variant="solid"
-                      onClick={newPayment}
-                    >
-                      {!isMobile ? <Text>Add</Text> : null}
-                    </Button>
-                  )}
-              </>
-            ) : (
-              <>
-                {currentYear.value === new Date().getFullYear() &&
-                  currentMonth.value === new Date().getMonth() + 1 && (
-                    <IconButton
-                      aria-label="Add Product Payment"
-                      icon={<IoAdd size={24}/>}
-                      colorScheme="blackAlpha"
-                      bgColor="black"
-                      variant="solid"
-                      onClick={newPayment}
-                    />
-                  )}
-              </>
-            )}
+                <>
+                  <Spacer />
+                  {currentYear.value === new Date().getFullYear() &&
+                    currentMonth.value === new Date().getMonth() + 1 && (
+                      <Button
+                        rightIcon={<IoAdd size="26" />}
+                        colorScheme="blackAlpha"
+                        bgColor="black"
+                        variant="solid"
+                        onClick={newPayment}
+                      >
+                        {!isMobile ? <Text>Add</Text> : null}
+                      </Button>
+                    )}
+                </>
+              ) : (
+                <>
+                  {currentYear.value === new Date().getFullYear() &&
+                    currentMonth.value === new Date().getMonth() + 1 && (
+                      <IconButton
+                        aria-label="Add Product Payment"
+                        icon={<IoAdd size={24} />}
+                        colorScheme="blackAlpha"
+                        bgColor="black"
+                        variant="solid"
+                        onClick={newPayment}
+                      />
+                    )}
+                </>
+              )}
             </HStack>
           </Stack>
           {payments != null && payments.length > 0 ? (
@@ -473,9 +471,18 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                         </Td>
                       )}
                       <Td>
-                        {payment.member.name.first_name +
-                          " " +
-                          payment.member.name.last_name}
+                        <Button
+                          onClick={() =>
+                            router.push({
+                              pathname: "../payments/membershipfeepaymentedit",
+                              query: { formType: "edit", paymentId: payment.docId },
+                            })
+                          }
+                        >
+                          {payment.member.name.first_name +
+                            " " +
+                            payment.member.name.last_name}
+                        </Button>
                       </Td>
                       <Td>{payment.membership_program.price.toString()}</Td>
                       <Td>{payment.status}</Td>
@@ -521,6 +528,12 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                       color: "gray",
                       cursor: 3,
                     }}
+                    onClick={() =>
+                      router.push({
+                        pathname: "../payments/membershipfeepaymentedit",
+                        query: { formType: "edit", paymentId: payment.docId },
+                      })
+                    }
                   >
                     <HStack spacing={12}>
                       <Stack direction="column" px={6} py={4} width="170px">
@@ -541,12 +554,12 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                           <IconButton
                             aria-label="Send Reminder Message"
                             icon={<IoMailUnreadOutline />}
-                            onClick={() => sendPaymentReminderMessage(payment)}
+                            onClick={(e) =>{e.stopPropagation(); sendPaymentReminderMessage(payment)}}
                           />
                           <IconButton
                             aria-label="Send Reminder Message"
                             icon={<IoCheckmarkDone />}
-                            onClick={() => paid(payment)}
+                            onClick={(e) => {e.stopPropagation(); paid(payment)}}
                           />
                         </VStack>
                       ) : null}
