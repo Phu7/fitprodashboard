@@ -146,7 +146,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
       const membershipProgramRef = doc(
         database,
         "membership_programs",
-        member.data().membership_program
+        member.data().membership_program.membershipProgramId
       );
       const membershipProgram = await getDoc(membershipProgramRef);
 
