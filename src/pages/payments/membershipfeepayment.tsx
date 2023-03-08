@@ -78,7 +78,14 @@ import {
   getYears,
   updateMembershipPaymentStatus,
 } from "../../services/firebaseService";
-import { Member, MembershipPayment, MembershipProgram, Month, Template, Year } from "../../types";
+import {
+  Member,
+  MembershipPayment,
+  MembershipProgram,
+  Month,
+  Template,
+  Year,
+} from "../../types";
 import {
   formulateMessage,
   validateMobileNumber,
@@ -88,16 +95,24 @@ interface PaymentTypeProps {
   updatePaymentType: (value: number) => void;
 }
 
+interface Option {
+  value: string;
+  label: string;
+  id: string;
+}
+
 function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const [members, setMembers] = useState<Array<Member>>();
-  const [selectedMember, setSelectedMember] = useState<Member>();
+  const [memberOptions, setMemberOptions] = useState<Array<Option>>();
   const [programs, setPrograms] = useState<Array<MembershipProgram>>();
-  const [selectedProgram, setSelectedProgram] = useState<MembershipProgram>();
+  const [programOptions, setProgramOptions] = useState<Array<Option>>();
   const [month, setMonth] = useState<Array<Month>>();
   const [year, setYear] = useState<Array<Year>>();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const router = useRouter();
+  const [selectedMemberOption, setSelectedMemberOption] = useState<Option>();
+  const [selectedProgramOption, setSelectedProgramOption] = useState<Option>();
   const [currentMonth, setCurrentMonth] = useState<Month>({
     docId: "",
     name: "",
@@ -110,15 +125,15 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   const [payments, setPayments] = useState<Array<MembershipPayment>>();
 
   const generatePaymentStatements = async () => {
-     if (members != undefined && members != null && members.length > 0) {
-       members.forEach(async (member) => {
+    if (members != undefined && members != null && members.length > 0) {
+      members.forEach(async (member) => {
         if (programs != undefined && programs != null && programs.length > 0) {
           let membershipProgram = programs.find(
             (program) =>
               program.membershipProgramId ==
               member.membership_program.membershipProgramId
           );
-          console.log(membershipProgram)
+          console.log(membershipProgram);
           await addDoc(collection(database, "membership_payments"), {
             member: member,
             membership_program: membershipProgram,
@@ -133,13 +148,20 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   };
 
   async function addPayment() {
+    const member: Member = members?.find(
+      (member) => member.docId == selectedMemberOption?.id
+    )!;
+    const program: MembershipProgram = programs?.find(
+      (program) => program.membershipProgramId == selectedProgramOption?.id
+    )!;
+
     await addMembershipPayment({
-      member: selectedMember!,
-      membership_program: selectedProgram!,
+      member: member,
+      membership_program: program,
       month: currentMonth.value,
       year: currentYear.value,
       status: "Due",
-    })
+    });
     generatePayments();
     onClose();
   }
@@ -171,9 +193,27 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
     const programs: Array<MembershipProgram> = await getAllMembershipPrograms();
 
     setMembers(members);
-    setSelectedMember(members[0]);
     setPrograms(programs);
-    setSelectedProgram(programs[0]);
+
+    const memberOptions: Array<Option> = [];
+    members.forEach((member) => {
+      memberOptions.push({
+        label: member.name.first_name,
+        value: member.name.first_name,
+        id: member.docId!,
+      });
+    });
+    setMemberOptions(memberOptions);
+
+    const programOptions: Array<Option> = [];
+    programs.forEach((program) => {
+      programOptions.push({
+        label: program.name,
+        value: program.name,
+        id: program.membershipProgramId!,
+      });
+    });
+    setProgramOptions(programOptions);
   }
 
   const getSMSTemplate = async () => {
@@ -196,6 +236,14 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
     } else {
       alert("Invalid Phone Number");
     }
+  };
+
+  const updateMemberOption = (value: any) => {
+    setSelectedMemberOption(value);
+  };
+
+  const updateProgramOption = (value: any) => {
+    setSelectedProgramOption(value);
   };
 
   function newPayment() {
@@ -480,7 +528,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
           <ModalBody pb={6}>
             <FormControl>
               <FormLabel>Member</FormLabel>
-              <Box
+              {/* <Box
                 borderRadius="md"
                 backgroundColor="gray.100"
                 pl="5"
@@ -501,11 +549,27 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                     ))}
                   </MenuList>
                 </Menu>
-              </Box>
+              </Box> */}
+              <Select
+                name="colors"
+                options={memberOptions}
+                placeholder="Select member..."
+                closeMenuOnSelect={false}
+                value={selectedMemberOption}
+                onChange={updateMemberOption}
+              />
             </FormControl>
             <FormControl>
               <FormLabel>Program</FormLabel>
-              <Box
+              <Select
+                name="colors"
+                options={programOptions}
+                placeholder="Select membership program..."
+                closeMenuOnSelect={false}
+                value={selectedProgramOption}
+                onChange={updateProgramOption}
+              />
+              {/* <Box
                 borderRadius="md"
                 backgroundColor="gray.100"
                 pl="5"
@@ -526,7 +590,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                     ))}
                   </MenuList>
                 </Menu>
-              </Box>
+              </Box> */}
             </FormControl>
           </ModalBody>
           <ModalFooter>

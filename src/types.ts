@@ -22,7 +22,7 @@ export interface Member {
   joining_date: Date;
   address: Address;
   membership_program: MembershipProgram;
-  is_active: boolean
+  is_active?: boolean
 }
 
 export interface MembershipProgram {

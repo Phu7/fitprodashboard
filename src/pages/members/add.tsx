@@ -62,25 +62,19 @@ function AddMember() {
   const router = useRouter();
   const [membershipPrograms, setMembershipPrograms] =
     useState<Array<MembershipPrograms>>();
-  const [formFields, setFormFields] = useState<Member>({
+  const [member, setMember] = useState<Member>();
+  const [formFields, setFormFields] = useState<>({
     docId: "",
-    name: {
-      first_name: "",
-      last_name: "",
-    },
+    first_name: "",
+    last_name: "",
     email: "",
     mobile_phone: 0,
-    address: {
-      city: "",
-      state: "",
-      country: "",
-    },
+    address_city: "",
+    address_state: "",
+    address_country: "",
     joining_date: new Date(),
-    membership_program: {
-      membershipProgramId: "",
-      name: "",
-    },
-    is_active: true,
+    membershipProgramId: "",
+    membershipProgramName: "",
   });
 
   async function addOrUpdateMember() {
@@ -165,7 +159,7 @@ function AddMember() {
     <>
       {!isMobile && (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={2} />
+          <ExpandedSideNav navIndex={3} />
         </Box>
       )}
       <Box pl={[2, null, "18%"]} w="98vw">

@@ -60,13 +60,14 @@ export async function getAllMembershipPrograms() {
   const querySnapshot = await getDocs(
     query(collection(database, "membership_programs"), orderBy("name"))
   );
-  let membershipPrograms: Array<MembershipProgram> = [
-    {
-      membershipProgramId: "",
-      name: "All Other Members",
-      price: 0,
-    },
-  ];
+  let membershipPrograms: Array<MembershipProgram> = []
+  // let membershipPrograms: Array<MembershipProgram> = [
+  //   {
+  //     membershipProgramId: "",
+  //     name: "All Other Members",
+  //     price: 0,
+  //   },
+  // ];
   querySnapshot.forEach((doc) => {
     membershipPrograms.push({
       membershipProgramId: doc.id,
@@ -109,6 +110,15 @@ export async function getMembersForMembership(membershipProgramId: string) {
   return members;
 }
 
+export async function addProduct(product: Product) {
+  await addDoc(collection(database, "products"), {
+    name: product.name,
+    price: product.price,
+    total_stock: product.total_stock,
+    available_stock: product.available_stock,
+  });
+}
+
 export async function addMember(member: Member) {
   await addDoc(collection(database, "members"), member);
 }
@@ -143,12 +153,33 @@ export async function updateMembershipProgram(
   });
 }
 
+export async function updateProduct(productId: string, product: Product) {
+  await updateDoc(doc(database, "products", productId), {
+    name: product.name,
+    price: product.price,
+    total_stock: product.total_stock,
+    available_stock: product.available_stock,
+  });
+}
+
 export async function deleteMember(memberId: string) {
   await deleteDoc(doc(database, "members", memberId));
 }
 
 export async function deleteMembershipProgram(membershipProgramId: string) {
   await deleteDoc(doc(database, "membership_programs", membershipProgramId));
+}
+
+export async function deleteProduct(productId: string) {
+  await deleteDoc(doc(database, "products", productId));
+}
+
+export async function deleteMembershipPayment(paymentId: string) {
+  await deleteDoc(doc(database, "membership_payments", paymentId));
+}
+
+export async function deleteProductPayment(paymentId: string) {
+  await deleteDoc(doc(database, "product_payments", paymentId));
 }
 
 export async function getMemberById(memberId: string) {
@@ -323,15 +354,50 @@ export async function getProductById(productId: string) {
   const docRef = doc(database, "products", productId);
   const document = await getDoc(docRef);
 
-  const product : Product = {
+  const product: Product = {
     product_id: document.id,
     name: document.data()?.name,
     total_stock: document.data()?.total_stock,
     available_stock: document.data()?.available_stock,
-    price: document.data()?.price
-  }
+    price: document.data()?.price,
+  };
 
   return product;
+}
+
+export async function getMembershipPaymentById(paymentId: string) {
+  const docRef = doc(database, "membership_payments", paymentId);
+  const document = await getDoc(docRef);
+
+  let payment: MembershipPayment = {
+    docId: document.id,
+    member: document.data()?.member,
+    membership_program: document.data()?.membership_program,
+    month: document.data()?.month,
+    status: document.data()?.status,
+    year: document.data()?.year,
+  };
+
+  return payment;
+}
+
+export async function getProductPaymentById(paymentId: string) {
+  const docRef = doc(database, "product_payments", paymentId);
+  const document = await getDoc(docRef);
+
+  let payment: ProductPayment = {
+    docId: document.id,
+    member: document.data()?.member,
+    product: document.data()?.product,
+    month: document.data()?.month,
+    year: document.data()?.year,
+    status: document.data()?.status,
+    quantity: document.data()?.quantity,
+    total: document.data()?.total,
+    due: document.data()?.due,
+  };
+
+  return payment;
 }
 
 export async function updateMessageTemplate(
@@ -350,20 +416,15 @@ export async function updateMembershipPaymentStatus(
   });
 }
 
-export async function updateProductPaymentStatus(
+export async function updateProductPaymentAmountAndStatus(
   paymentId: string,
-  status: string
+  payment: {due: Number, status: string}
 ) {
-  await updateDoc(doc(database, "product_payments", paymentId), {
-    status: status,
-  });
+  await updateDoc(doc(database, "product_payments", paymentId), payment);
 }
 
-export async function updateProduct(productId: string, product: Product) {
-  await updateDoc(
-    doc(database, "products", productId),
-    {
-      available_stock: product.available_stock
-    }
-  );
+export async function updateProductCount(productId: string, product: Product) {
+  await updateDoc(doc(database, "products", productId), {
+    available_stock: product.available_stock,
+  });
 }

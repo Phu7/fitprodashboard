@@ -44,14 +44,13 @@ import {
 import ExpandedSideNav from "../../components/ExpandedSideNav";
 import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
-
-interface Product {
-  name: string;
-  price: number;
-  total_stock: number;
-  available_stock: number;
-}
+import { Product } from "../../types";
+import {
+  addProduct,
+  deleteProduct,
+  getProductById,
+  updateProduct,
+} from "../../services/firebaseService";
 
 function AddProduct() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -65,34 +64,22 @@ function AddProduct() {
     available_stock: 0,
   });
 
-  async function addProduct() {
+  async function addOrUpdateProduct() {
+    const product: Product = {
+      name: formFields.name,
+      price: Number.parseInt(formFields.price.toString()),
+      total_stock: Number.parseInt(formFields.total_stock.toString()),
+      available_stock: Number.parseInt(formFields.available_stock.toString()),
+    };
+
     router.query.formType === "new"
-      ? await addDoc(collection(database, "products"), {
-          name: formFields.name,
-          price: Number.parseInt(formFields.price.toString()),
-          total_stock: Number.parseInt(formFields.total_stock.toString()),
-          available_stock: Number.parseInt(
-            formFields.available_stock.toString()
-          ),
-        })
-      : await updateDoc(
-          doc(database, "products", router.query.productId as string),
-          {
-            name: formFields.name,
-            price: Number.parseInt(formFields.price.toString()),
-            total_stock: Number.parseInt(formFields.total_stock.toString()),
-            available_stock: Number.parseInt(
-              formFields.available_stock.toString()
-            ),
-          }
-        );
+      ? await addProduct(product)
+      : await updateProduct(router.query.productId as string, product);
     router.back();
   }
 
-  async function deleteProduct() {
-    await deleteDoc(
-      doc(database, "products", router.query.productId as string)
-    );
+  async function removeProduct() {
+    await deleteProduct(router.query.productId as string);
     router.back();
   }
 
@@ -102,21 +89,15 @@ function AddProduct() {
   };
 
   async function getEditableProduct() {
-    let id: string = router.query.productId as string;
-    const docRef = doc(database, "products", id);
-    const docSnapshot = await getDoc(docRef);
+    const id: string = router.query.productId as string;
+    const product: Product = await getProductById(id);
 
-    if (docSnapshot.exists()) {
-      setFormFields({
-        name: docSnapshot.data().name,
-        price: docSnapshot.data().price,
-        total_stock: docSnapshot.data().total_stock,
-        available_stock: docSnapshot.data().available_stock,
-      });
-    } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
-    }
+    setFormFields({
+      name: product.name,
+      price: product.price,
+      total_stock: product.total_stock,
+      available_stock: product.available_stock,
+    });
   }
 
   useEffect(() => {
@@ -127,7 +108,7 @@ function AddProduct() {
     <>
       {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={3} />
+          <ExpandedSideNav navIndex={4} />
         </Box>
       ) : null}
       <Box pl={[2, null, "18%"]} w="98vw">
@@ -137,7 +118,7 @@ function AddProduct() {
           </Text>
           <HStack>
             <Button
-              onClick={addProduct}
+              onClick={addOrUpdateProduct}
               leftIcon={<IoSave size="20" />}
               colorScheme="blackAlpha"
               variant="outline"
@@ -149,16 +130,16 @@ function AddProduct() {
             <Spacer />
             {router.query.formType !== "new" ? (
               <>
-              <Button
-                leftIcon={<IoTrashOutline size="20" />}
-                colorScheme="red"
-                onClick={onOpen}
-              >
-                <Text fontSize="lg" color="white">
-                  Delete
-                </Text>
-              </Button>
-              <AlertDialog
+                <Button
+                  leftIcon={<IoTrashOutline size="20" />}
+                  colorScheme="red"
+                  onClick={onOpen}
+                >
+                  <Text fontSize="lg" color="white">
+                    Delete
+                  </Text>
+                </Button>
+                <AlertDialog
                   isOpen={isOpen}
                   leastDestructiveRef={cancelRef}
                   onClose={onClose}
@@ -170,21 +151,29 @@ function AddProduct() {
                       </AlertDialogHeader>
 
                       <AlertDialogBody>
-                        Are you sure? You can&apos;t undo this action afterwards.
+                        Are you sure? You can&apos;t undo this action
+                        afterwards.
                       </AlertDialogBody>
 
                       <AlertDialogFooter>
                         <Button ref={cancelRef} onClick={onClose}>
                           Cancel
                         </Button>
-                        <Button colorScheme="red" onClick={() => {deleteProduct(); onClose()}} ml={3}>
+                        <Button
+                          colorScheme="red"
+                          onClick={() => {
+                            removeProduct();
+                            onClose();
+                          }}
+                          ml={3}
+                        >
                           Delete
                         </Button>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialogOverlay>
-                </AlertDialog>              </>
-              
+                </AlertDialog>{" "}
+              </>
             ) : null}
           </HStack>
           <Grid templateColumns="repeat(4, 1fr)" gap={{ base: 2, sm: 6 }}>

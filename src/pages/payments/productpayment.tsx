@@ -53,20 +53,28 @@ import {
   getProductById,
   getProductPayments,
   getYears,
-  updateProduct,
-  updateProductPaymentStatus,
+  updateProductCount,
 } from "../../services/firebaseService";
+import { Select } from "chakra-react-select";
 
 interface PaymentTypeProps {
   updatePaymentType: (value: number) => void;
 }
 
+interface Option {
+  value: string;
+  label: string;
+  id: string;
+}
+
 function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const [members, setMembers] = useState<Array<Member>>();
-  const [selectedMember, setSelectedMember] = useState<Member>();
+  const [memberOptions, setMemberOptions] = useState<Array<Option>>();
   const [products, setProducts] = useState<Array<Product>>();
-  const [selectedProduct, setSelectedProduct] = useState<Product>();
+  const [productOptions, setProductOptions] = useState<Array<Option>>();
+  const [selectedMemberOption, setSelectedMemberOption] = useState<Option>();
+  const [selectedProductOption, setSelectedProductOption] = useState<Option>();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [month, setMonth] = useState<Array<Month>>();
   const [year, setYear] = useState<Array<Year>>();
@@ -79,7 +87,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     docId: "",
     value: new Date().getFullYear(),
   });
-  const [quantity, setQuanity] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number>(1);
   const [payments, setPayments] = useState<Array<ProductPayment>>();
   const router = useRouter();
 
@@ -93,18 +101,18 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
 
   const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     const { name, value } = e.currentTarget;
-    setQuanity(Number.parseInt(value));
+    setQuantity(Number.parseInt(value));
   };
 
   function newPayment() {
     onOpen();
   }
 
-  async function updateProductAvailability() {
+  async function updateProductAvailability(selectedProduct: Product) {
     const product = await getProductById(selectedProduct?.product_id as string);
 
     if (product != null && product.available_stock > 0) {
-      await updateProduct(selectedProduct?.product_id as string, {
+      await updateProductCount(product?.product_id as string, {
         name: product.name,
         total_stock: product.total_stock,
         available_stock: product.available_stock - quantity,
@@ -117,20 +125,35 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   }
 
   async function addPayment() {
-    addProductPayment({
-      member: selectedMember!,
-      product: selectedProduct!,
+    const member: Member = members?.find(
+      (member) => member.docId == selectedMemberOption?.id
+    )!;
+    const product: Product = products?.find(
+      (product) => product.product_id == selectedProductOption?.id
+    )!;
+
+    await addProductPayment({
+      member: member,
+      product: product,
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       status: "Due",
       quantity: quantity,
-      total: selectedProduct != null ? selectedProduct.price * quantity : 0,
-      due: selectedProduct != null ? selectedProduct.price * quantity : 0,
+      total: product != null ? product.price * quantity : 0,
+      due: product != null ? product.price * quantity : 0,
     });
-    updateProductAvailability();
+    updateProductAvailability(product);
     generatePayments();
     onClose();
   }
+
+  const updateMemberOption = (value: any) => {
+    setSelectedMemberOption(value);
+  };
+
+  const updateProductOption = (value: any) => {
+    setSelectedProductOption(value);
+  };
 
   async function initializeMonthAndYear() {
     const months: Array<Month> = await getMonths();
@@ -151,10 +174,29 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     const products: Array<Product> = await getAvailableProducts();
 
     setMembers(members);
-    setSelectedMember(members[0]);
     setProducts(products);
-    setSelectedProduct(products[0]);
+
+    const memberOptions: Array<Option> = [];
+    members.forEach((member) => {
+      memberOptions.push({
+        label: member.name.first_name,
+        value: member.name.first_name,
+        id: member.docId!,
+      });
+    });
+    setMemberOptions(memberOptions);
+
+    const productOptions: Array<Option> = [];
+    products.forEach((product) => {
+      productOptions.push({
+        label: product.name,
+        value: product.name,
+        id: product.product_id!,
+      });
+    });
+    setProductOptions(productOptions);
   }
+
   useEffect(() => {
     initializeMonthAndYear();
     initializeMembersAndProducts();
@@ -358,7 +400,15 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
           <ModalBody pb={6}>
             <FormControl>
               <FormLabel>Member</FormLabel>
-              <Box
+              <Select
+                name="members"
+                options={memberOptions}
+                placeholder="Select member..."
+                closeMenuOnSelect={false}
+                value={selectedMemberOption}
+                onChange={updateMemberOption}
+              />
+              {/* <Box
                 borderRadius="md"
                 backgroundColor="gray.100"
                 pl="5"
@@ -379,11 +429,19 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                     ))}
                   </MenuList>
                 </Menu>
-              </Box>
+              </Box> */}
             </FormControl>
             <FormControl>
               <FormLabel>Product</FormLabel>
-              <Box
+              <Select
+                name="products"
+                options={productOptions}
+                placeholder="Select membership program..."
+                closeMenuOnSelect={false}
+                value={selectedProductOption}
+                onChange={updateProductOption}
+              />
+              {/* <Box
                 borderRadius="md"
                 backgroundColor="gray.100"
                 pl="5"
@@ -404,11 +462,15 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                     ))}
                   </MenuList>
                 </Menu>
-              </Box>
+              </Box> */}
             </FormControl>
             <FormControl>
               <FormLabel>Quantity</FormLabel>
-              <Input name="quantity" onChange={handleInputChange} defaultValue={1} />
+              <Input
+                name="quantity"
+                onChange={handleInputChange}
+                defaultValue={1}
+              />
             </FormControl>
           </ModalBody>
           <ModalFooter>

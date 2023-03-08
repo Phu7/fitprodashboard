@@ -40,7 +40,7 @@ import SideNav from "../../components/SideNav";
 import { Member, MembershipProgram } from "../../types";
 import {
   getAllMembershipPrograms,
-  getMembersForMembership
+  getMembersForMembership,
 } from "../../services/firebaseService";
 import NavigationBar from "../../components/NavigationBar";
 
@@ -57,15 +57,22 @@ function Members() {
     let membershipProgramId: string =
       selectedMembershipProgram?.membershipProgramId ?? "";
 
-    let members: Array<Member> = await getMembersForMembership(membershipProgramId);
+    let members: Array<Member> = await getMembersForMembership(
+      membershipProgramId
+    );
     setMembers(members);
   }
 
   async function getMembershipPrograms() {
     let membershipPrograms: Array<MembershipProgram> =
       await getAllMembershipPrograms();
+    membershipPrograms.push({
+      membershipProgramId: "",
+      name: "All Other Members",
+      price: 0,
+    });
     setMembershipPrograms(membershipPrograms);
-    setSelectedMembershipProgram(membershipPrograms[0]);
+    setSelectedMembershipProgram(membershipPrograms[membershipPrograms.length - 1]);
   }
 
   useEffect(() => {

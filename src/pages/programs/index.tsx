@@ -89,12 +89,15 @@ function Programs() {
   async function getMembershipPrograms() {
     let membershipPrograms: Array<MembershipProgram> =
       await getAllMembershipPrograms();
-    setMembershipPrograms(membershipPrograms.slice(1, membershipPrograms.length)); 
+    setMembershipPrograms(membershipPrograms);
   }
 
   const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     const { name, value } = e.currentTarget;
-    setSelectedMembershipProgram((prevState) => ({ ...prevState, [name]: value }));
+    setSelectedMembershipProgram((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
   async function addProgram() {

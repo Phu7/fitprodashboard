@@ -45,52 +45,61 @@ import ExpandedSideNav from "../../components/ExpandedSideNav";
 import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
+import { MembershipPayment, ProductPayment } from "../../types";
+import {
+  deleteMembershipPayment,
+  getMembershipPaymentById,
+  updateMembershipPaymentStatus,
+} from "../../services/firebaseService";
 
-interface Payment {
-  memberName: string;
-  due: number;
-  status: string;
-}
+// interface Payment {
+//   memberName: string;
+//   due: number;
+//   status: string;
+// }
 
 function EditFeePayment() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef(null);
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const router = useRouter();
-  const [formFields, setFormFields] = useState<Payment>({
-    memberName: "",
-    due: 0,
+  const [formFields, setFormFields] = useState<MembershipPayment>({
+    member: {
+      name: {
+        first_name: "",
+        last_name: "",
+      },
+      email: "",
+      mobile_phone: 0,
+      joining_date: new Date(),
+      address: {
+        city: "",
+        state: "",
+        country: "",
+      },
+      membership_program: {
+        name: "",
+        price: 0,
+      },
+    },
+    membership_program: {
+      name: "",
+      price: 0,
+    },
+    month: 0,
+    year: 0,
     status: "",
   });
 
   async function addPayment() {
     router.query.formType === "new"
       ? null
-      : // ? await addDoc(collection(database, "products"), {
-        //     name: formFields.name,
-        //     price: Number.parseInt(formFields.price.toString()),
-        //     total_stock: Number.parseInt(formFields.total_stock.toString()),
-        //     available_stock: Number.parseInt(
-        //       formFields.available_stock.toString()
-        //     ),
-        //   })
-        await updateDoc(
-          doc(
-            database,
-            "membership_payments",
-            router.query.paymentId as string
-          ),
-          {
-            status: formFields.status,
-          }
-        );
+      : await updateMembershipPaymentStatus(router.query.paymentId as string, formFields.status)
     router.back();
   }
 
-  async function delePayment() {
-    await deleteDoc(
-      doc(database, "membership_payments", router.query.paymentId as string)
-    );
+  async function removePayment() {
+    await deleteMembershipPayment(router.query.paymentId as string);
     router.back();
   }
 
@@ -101,22 +110,15 @@ function EditFeePayment() {
 
   async function getEditablePayment() {
     let id: string = router.query.paymentId as string;
-    const docRef = doc(database, "membership_payments", id);
-    const docSnapshot = await getDoc(docRef);
 
-    if (docSnapshot.exists()) {
-      setFormFields({
-        memberName:
-          docSnapshot.data().member.name.first_name +
-          " " +
-          docSnapshot.data().member.name.last_name,
-        due: docSnapshot.data().membership_program.price,
-        status: docSnapshot.data().status,
-      });
-    } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
-    }
+    const payment: MembershipPayment = await getMembershipPaymentById(id);
+    setFormFields({
+      member: payment.member,
+      membership_program: payment.membership_program,
+      month: payment.month,
+      year: payment.year,
+      status: payment.status,
+    });
   }
 
   useEffect(() => {
@@ -181,7 +183,7 @@ function EditFeePayment() {
                         <Button
                           colorScheme="red"
                           onClick={() => {
-                            delePayment();
+                            removePayment();
                             onClose();
                           }}
                           ml={3}
@@ -200,7 +202,11 @@ function EditFeePayment() {
               <FormControl>
                 <FormLabel>Member</FormLabel>
                 <Button width="100%">
-                  <Text color="gray.400">{formFields.memberName}</Text>
+                  <Text color="gray.400">
+                    {formFields.member.name.first_name +
+                      " " +
+                      formFields.member.name.last_name}
+                  </Text>
                 </Button>
               </FormControl>
             </GridItem>
@@ -208,7 +214,9 @@ function EditFeePayment() {
               <FormControl>
                 <FormLabel>Due</FormLabel>
                 <Button width="100%">
-                  <Text color="gray.400">{formFields.due}</Text>
+                  <Text color="gray.400">
+                    {formFields.membership_program.price.toString()}
+                  </Text>
                 </Button>
               </FormControl>
             </GridItem>
