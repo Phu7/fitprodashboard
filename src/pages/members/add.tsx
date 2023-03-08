@@ -46,24 +46,14 @@ import ExpandedSideNav from "../../components/ExpandedSideNav";
 import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
-
-interface Member {
-  id: number;
-  fname: string;
-  lname: string;
-  email: string;
-  mobile_phone: number;
-  joining_date: string;
-  address_city: string;
-  address_state: string;
-  address_country: string;
-  membership_program: MembershipPrograms;
-}
-
-interface MembershipPrograms {
-  membershipProgramId: string;
-  name: string;
-}
+import { MembershipPrograms, Member } from "../../types";
+import {
+  addMember,
+  deleteMember,
+  getAllMembershipPrograms,
+  getMemberById,
+  updateMember,
+} from "../../services/firebaseService";
 
 function AddMember() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -73,63 +63,51 @@ function AddMember() {
   const [membershipPrograms, setMembershipPrograms] =
     useState<Array<MembershipPrograms>>();
   const [formFields, setFormFields] = useState<Member>({
-    id: 1,
-    fname: "",
-    lname: "",
+    docId: "",
+    name: {
+      first_name: "",
+      last_name: "",
+    },
     email: "",
     mobile_phone: 0,
-    joining_date: "",
-    address_city: "",
-    address_state: "",
-    address_country: "",
+    address: {
+      city: "",
+      state: "",
+      country: "",
+    },
+    joining_date: new Date(),
     membership_program: {
       membershipProgramId: "",
-      name: ""
+      name: "",
     },
+    is_active: true,
   });
 
-  async function addMember() {
+  async function addOrUpdateMember() {
+    let member: Member = {
+      name: {
+        first_name: formFields.name.first_name,
+        last_name: formFields.name.last_name,
+      },
+      email: formFields.email,
+      mobile_phone: Number.parseInt(formFields.mobile_phone.toString()),
+      is_active: true,
+      address: {
+        city: formFields.address.city,
+        state: formFields.address.state,
+        country: formFields.address.country,
+      },
+      joining_date: formFields.joining_date,
+      membership_program: formFields.membership_program,
+    };
     router.query.formType === "new"
-      ? await addDoc(collection(database, "members"), {
-          name: {
-            first_name: formFields.fname,
-            last_name: formFields.lname,
-          },
-          email: formFields.email,
-          mobile_phone: Number.parseInt(formFields.mobile_phone.toString()),
-          is_active: true,
-          address: {
-            city: formFields.address_city,
-            state: formFields.address_state,
-            country: formFields.address_country,
-          },
-          joining_date: formFields.joining_date,
-          membership_program: formFields.membership_program,
-        })
-      : await updateDoc(
-          doc(database, "members", router.query.memberId as string),
-          {
-            name: {
-              first_name: formFields.fname,
-              last_name: formFields.lname,
-            },
-            email: formFields.email,
-            mobile_phone: Number.parseInt(formFields.mobile_phone.toString()),
-            is_active: true,
-            address: {
-              city: formFields.address_city,
-              state: formFields.address_state,
-              country: formFields.address_country,
-            },
-            joining_date: formFields.joining_date,
-            membership_program: formFields.membership_program,
-          }
-        );
+      ? await addMember(member)
+      : await updateMember(router.query.memberId as string, member);
     router.back();
   }
 
-  async function deleteMember() {
-    await deleteDoc(doc(database, "members", router.query.memberId as string));
+  async function removeMember() {
+    await deleteMember(router.query.memberId as string);
     router.back();
   }
 
@@ -148,40 +126,33 @@ function AddMember() {
   };
 
   async function getMembershipPrograms() {
-    const querySnapshot = await getDocs(
-      collection(database, "membership_programs")
-    );
-    let temp: Array<MembershipPrograms> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        membershipProgramId: doc.id,
-        name: doc.data().name,
-      });
-    });
-    setMembershipPrograms(temp);
+    let membershipProgram: Array<MembershipPrograms> =
+      await getAllMembershipPrograms();
+    setMembershipPrograms(membershipProgram);
   }
 
   async function getEditableMember() {
-    let id: string = router.query.memberId as string;
-    const docRef = doc(database, "members", id);
-    const docSnapshot = await getDoc(docRef);
+    let memberId: string = router.query.memberId as string;
+    let member: Member = await getMemberById(memberId);
 
-    if (docSnapshot.exists()) {
+    if (member != null) {
       setFormFields({
-        id: docSnapshot.data().id,
-        fname: docSnapshot.data().name.first_name,
-        lname: docSnapshot.data().name.last_name,
-        email: docSnapshot.data().email,
-        mobile_phone: docSnapshot.data().mobile_phone,
-        joining_date: docSnapshot.data().joining_date,
-        address_city: docSnapshot.data().address.city,
-        address_state: docSnapshot.data().address.state,
-        address_country: docSnapshot.data().address.country,
-        membership_program: docSnapshot.data().membership_program,
+        docId: member.docId,
+        name: {
+          first_name: member.name.first_name,
+          last_name: member.name.last_name,
+        },
+        email: member.email,
+        mobile_phone: member.mobile_phone,
+        joining_date: new Date(member.joining_date),
+        address: {
+          city: member.address.city,
+          state: member.address.state,
+          country: member.address.country,
+        },
+        membership_program: member.membership_program,
+        is_active: member.is_active,
       });
-    } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
     }
   }
 
@@ -192,11 +163,11 @@ function AddMember() {
 
   return (
     <>
-      {!isMobile ? (
+      {!isMobile && (
         <Box width="18%" pos="fixed">
           <ExpandedSideNav navIndex={2} />
         </Box>
-      ) : null}
+      )}
       <Box pl={[2, null, "18%"]} w="98vw">
         <Stack direction="column" spacing={8} px={[2, null, 10]} py={10}>
           <Text as="b" fontSize="2xl" color="black">
@@ -204,7 +175,7 @@ function AddMember() {
           </Text>
           <HStack>
             <Button
-              onClick={addMember}
+              onClick={addOrUpdateMember}
               leftIcon={<IoSave size="20" />}
               colorScheme="blackAlpha"
               variant="outline"
@@ -238,14 +209,22 @@ function AddMember() {
                       </AlertDialogHeader>
 
                       <AlertDialogBody>
-                        Are you sure? You can&apos;t undo this action afterwards.
+                        Are you sure? You can&apos;t undo this action
+                        afterwards.
                       </AlertDialogBody>
 
                       <AlertDialogFooter>
                         <Button ref={cancelRef} onClick={onClose}>
                           Cancel
                         </Button>
-                        <Button colorScheme="red" onClick={() => {deleteMember(); onClose()}} ml={3}>
+                        <Button
+                          colorScheme="red"
+                          onClick={() => {
+                            removeMember();
+                            onClose();
+                          }}
+                          ml={3}
+                        >
                           Delete
                         </Button>
                       </AlertDialogFooter>
@@ -265,7 +244,7 @@ function AddMember() {
                   placeholder="First Name"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.fname}
+                  value={formFields.name.first_name}
                 />
               </FormControl>
             </GridItem>
@@ -278,7 +257,7 @@ function AddMember() {
                   placeholder="Last Name"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.lname}
+                  value={formFields.name.last_name}
                 />
               </FormControl>
             </GridItem>
@@ -319,7 +298,7 @@ function AddMember() {
                   placeholder="City"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.address_city}
+                  value={formFields.address.city}
                 />
               </FormControl>
             </GridItem>
@@ -332,7 +311,7 @@ function AddMember() {
                   placeholder="State"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.address_state}
+                  value={formFields.address.state}
                 />
               </FormControl>
             </GridItem>
@@ -345,7 +324,7 @@ function AddMember() {
                   placeholder="Country"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.address_country}
+                  value={formFields.address.country}
                 />
               </FormControl>
             </GridItem>
@@ -359,7 +338,7 @@ function AddMember() {
                   placeholder="Select Date and Time"
                   size="lg"
                   onChange={handleInputChange}
-                  defaultValue={formFields.joining_date}
+                  defaultValue={formFields.joining_date.toDateString()}
                 />
               </FormControl>
             </GridItem>

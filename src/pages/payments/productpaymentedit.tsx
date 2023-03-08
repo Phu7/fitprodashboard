@@ -250,6 +250,7 @@ import {
                     size="lg"
                     onChange={handleInputChange}
                     placeholder="Payment Value"
+                    defaultValue={0}
                   />
                 </FormControl>
               </GridItem>

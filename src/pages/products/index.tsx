@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Button,
   HStack,
@@ -23,32 +22,15 @@ import { IoPencil } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import {
   IoChevronDownOutline,
-  IoSearchOutline,
-  IoFilter,
   IoAdd,
 } from "react-icons/io5";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
-import {
-  collection,
-  Firestore,
-  getDocs,
-  onSnapshot,
-  query,
-  QueryDocumentSnapshot,
-  where,
-} from "firebase/firestore";
-import { database } from "../../firebaseConfig";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
-
-interface Product {
-  product_id: string;
-  name: string;
-  total_stock: number;
-  available_stock: number;
-  price: number;
-}
+import { Product } from "../../types";
+import { getAvailableProducts, getUnavailableProducts } from "../../services/firebaseService";
+import NavigationBar from "../../components/NavigationBar";
 
 function Products() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
@@ -58,28 +40,9 @@ function Products() {
   const router = useRouter();
 
   async function getProducts() {
-    const q =
-      productAvailability === "In Stock"
-        ? query(
-            collection(database, "products"),
-            where("available_stock", ">", 0)
-          )
-        : query(
-            collection(database, "products"),
-            where("available_stock", "==", 0)
-          );
-    const querySnapshot = await getDocs(q);
-    let temp: Array<Product> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        product_id: doc.id,
-        name: doc.data().name,
-        total_stock: doc.data().total_stock,
-        available_stock: doc.data().available_stock,
-        price: doc.data().price,
-      });
-    });
-    setProducts(temp);
+    let products : Array<Product> = productAvailability === "In Stock" ?
+    await getAvailableProducts() : await getUnavailableProducts()
+    setProducts(products);
   }
 
   useEffect(() => {
@@ -88,15 +51,7 @@ function Products() {
 
   return (
     <>
-      {!isMobile ? (
-        <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={4} />
-        </Box>
-      ) : (
-        <Box width="18%" pos="fixed">
-          <SideNav navIndex={4} />
-        </Box>
-      )}
+      <NavigationBar navIndex={4} />
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
         <Stack direction="column" spacing={8} px={[2, null, 10]} py={10}>
           <Text as="b" fontSize="2xl" color="black">

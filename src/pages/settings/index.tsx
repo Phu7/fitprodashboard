@@ -1,4 +1,12 @@
-import { Box, Button, HStack, Spacer, Stack, Text, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  Spacer,
+  Stack,
+  Text,
+  Textarea,
+} from "@chakra-ui/react";
 import {
   query,
   collection,
@@ -13,12 +21,8 @@ import ExpandedSideNav from "../../components/ExpandedSideNav";
 import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
-
-interface Template {
-  docId: string;
-  channel: string;
-  message: string;
-}
+import { Template } from "../../types";
+import { getMessageTemplate, updateMessageTemplate } from "../../services/firebaseService";
 
 function Settings() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
@@ -26,26 +30,14 @@ function Settings() {
   const [inputMessage, setInputMessage] = useState<string>();
 
   const getSMSTemplate = async () => {
-    const q = query(
-      collection(database, "templates"),
-      where("channel", "==", "sms")
-    );
-    const templateMessages = await getDocs(q);
-    let temp: Array<Template> = [];
-    templateMessages.forEach((template) =>
-      temp.push({
-        docId: template.id,
-        channel: template.data().channel,
-        message: template.data().message,
-      })
-    );
-    setSmsMessage(temp[0]);
+    let templateMessages: Array<Template> = await getMessageTemplate("sms");
+    setSmsMessage(templateMessages[0]);
   };
 
   const updateSMSTemplate = async () => {
-    await updateDoc(doc(database, "templates", smsMessage?.docId as string), {
+    await updateMessageTemplate(smsMessage?.docId as string, {
       channel: "sms",
-      message: inputMessage,
+      message: inputMessage!,
     });
   };
 
@@ -60,16 +52,16 @@ function Settings() {
 
   return (
     <>
-       {!isMobile ? (
+      {!isMobile ? (
         <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={6}/>
+          <ExpandedSideNav navIndex={6} />
         </Box>
       ) : (
         <Box width="18%" pos="fixed">
-          <SideNav navIndex={6}/>
+          <SideNav navIndex={6} />
         </Box>
       )}
-      <Box pl={{ base: "20%", sm: "18%" }}  w="98vw">
+      <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
         <Stack direction="column" spacing={6} px={[2, null, 10]} py={10}>
           <Text as="b" fontSize="2xl" color="black">
             Settings
@@ -83,9 +75,7 @@ function Settings() {
           <HStack>
             <Spacer />
             <Button colorScheme="blue" onClick={updateSMSTemplate}>
-              <Text fontSize="lg">
-                Update
-              </Text>
+              <Text fontSize="lg">Update</Text>
             </Button>
           </HStack>
         </Stack>

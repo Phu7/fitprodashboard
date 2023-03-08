@@ -1,11 +1,7 @@
 import {
   Box,
-  Center,
-  Flex,
-  Square,
   Stack,
   Table,
-  TableCaption,
   Tbody,
   Td,
   Th,
@@ -20,8 +16,6 @@ import {
   IconButton,
   Spacer,
   HStack,
-  VStack,
-  Container,
   FormControl,
   FormLabel,
   Input,
@@ -33,82 +27,35 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
-  Portal,
-  Select,
   useMediaQuery,
   SimpleGrid,
+  VStack,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import ExpandedSideNav from "../../components/ExpandedSideNav";
-import {
-  IoChevronDownOutline,
-  IoSearchOutline,
-  IoFilter,
-  IoAdd,
-  IoMailUnreadOutline,
-  IoCloseCircleSharp,
-  IoEllipsisHorizontalCircleSharp,
-  IoTodayOutline,
-  IoCloseCircle,
-  IoCheckmarkDone,
-} from "react-icons/io5";
+import { IoChevronDownOutline, IoAdd, IoCheckmarkDone } from "react-icons/io5";
 import { useRouter } from "next/router";
-import {
-  addDoc,
-  collection,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  doc,
-  updateDoc,
-  orderBy,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
-import { getSystemErrorMap } from "util";
-import { generateKeyPairSync } from "crypto";
-import SideNav from "../../components/SideNav";
-
-interface Name {
-  first_name: string;
-  last_name: string;
-}
-
-interface Member {
-  docId: string;
-  name: Name;
-}
-
-interface Product {
-  product_id: string;
-  name: string;
-  total_stock: number;
-  available_stock: number;
-  price: number;
-}
-
-interface Payment {
-  docId: string;
-  member: Member;
-  product: Product;
-  month: Number;
-  year: Number;
-  quantity: Number;
-  status: string;
-  total : Number;
-  due: Number;
-}
-
-interface Month {
-  docId: string;
-  name: string;
-  value: Number;
-}
-
-interface Year {
-  docId: string;
-  value: Number;
-}
+import NavigationBar from "../../components/NavigationBar";
+import {
+  Member,
+  MembershipProgram,
+  Month,
+  Product,
+  ProductPayment,
+  Year,
+} from "../../types";
+import {
+  addProductPayment,
+  getAllMembers,
+  getAvailableProducts,
+  getMonths,
+  getProductById,
+  getProductPayments,
+  getYears,
+  updateProduct,
+  updateProductPaymentStatus,
+} from "../../services/firebaseService";
 
 interface PaymentTypeProps {
   updatePaymentType: (value: number) => void;
@@ -133,101 +80,15 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
     value: new Date().getFullYear(),
   });
   const [quantity, setQuanity] = useState<number>(0);
-  const [payments, setPayments] = useState<Array<Payment>>();
+  const [payments, setPayments] = useState<Array<ProductPayment>>();
   const router = useRouter();
 
-  async function getAllMembers() {
-    const querySnapshot = await getDocs(collection(database, "members"));
-    let temp: Array<Member> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        name: {
-          first_name: doc.data().name.first_name,
-          last_name: doc.data().name.last_name,
-        },
-      });
-    });
-    setMembers(temp);
-    setSelectedMember(temp[0]);
-  }
-
-  async function getAllProducts() {
-    const querySnapshot = await getDocs(
-      query(collection(database, "products"), where("available_stock", ">", 0))
+  async function generatePayments() {
+    let payments: Array<ProductPayment> = await getProductPayments(
+      currentMonth.value,
+      currentYear.value
     );
-    let temp: Array<Product> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        product_id: doc.id,
-        name: doc.data().name,
-        total_stock: doc.data().total_stock,
-        available_stock: doc.data().available_stock,
-        price: doc.data().price,
-      });
-    });
-    setProducts(temp);
-    setSelectedProduct(temp[0]);
-  }
-
-  async function getPayments() {
-    const querySnapshot = await getDocs(
-      query(
-        collection(database, "product_payments"),
-        where("month", "==", currentMonth.value),
-        where("year", "==", currentYear.value)
-      )
-    );
-    let temp: Array<Payment> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        member: doc.data().member,
-        product: doc.data().product,
-        month: doc.data().month,
-        year: doc.data().year,
-        quantity: doc.data().quantity,
-        status: doc.data().status,
-        total: doc.data().total,
-        due: doc.data().due
-      });
-    });
-    setPayments(temp);
-  }
-
-  async function getMonths() {
-    const querySnapshot = await getDocs(
-      query(collection(database, "months"), orderBy("value"))
-    );
-    let temp: Array<Month> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        name: doc.data().name,
-        value: doc.data().value,
-      });
-    });
-    setMonth(temp);
-    setCurrentMonth(
-      temp.find((month) => month.value == new Date().getMonth() + 1)!
-    );
-  }
-
-  async function getYears() {
-    const querySnapshot = await getDocs(
-      query(collection(database, "years"), orderBy("value"))
-    );
-    let temp: Array<Year> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        value: doc.data().value,
-      });
-    });
-    setYear(temp);
-    setCurrentYear(
-      temp.find((year) => year.value == new Date().getFullYear())!
-    );
+    setPayments(payments);
   }
 
   const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -236,28 +97,19 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   };
 
   function newPayment() {
-    getAllMembers();
-    getAllProducts();
     onOpen();
   }
 
-  async function updateProduct() {
-    const docRef = doc(
-      database,
-      "products",
-      selectedProduct?.product_id as string
-    );
-    const docSnap = await getDoc(docRef);
+  async function updateProductAvailability() {
+    const product = await getProductById(selectedProduct?.product_id as string);
 
-    if (docSnap.exists() && docSnap.data().available_stock > 0) {
-      await updateDoc(
-        doc(database, "products", selectedProduct?.product_id as string),
-        {
-          available_stock:
-            Number.parseInt(docSnap.data().available_stock.toString()) -
-            quantity,
-        }
-      );
+    if (product != null && product.available_stock > 0) {
+      await updateProduct(selectedProduct?.product_id as string, {
+        name: product.name,
+        total_stock: product.total_stock,
+        available_stock: product.available_stock - quantity,
+        price: product.price,
+      });
     } else {
       // doc.data() will be undefined in this case
       console.log("No such document!");
@@ -265,53 +117,56 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   }
 
   async function addPayment() {
-    await addDoc(collection(database, "product_payments"), {
-      member: selectedMember,
-      product: selectedProduct,
+    addProductPayment({
+      member: selectedMember!,
+      product: selectedProduct!,
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       status: "Due",
       quantity: quantity,
       total: selectedProduct != null ? selectedProduct.price * quantity : 0,
-      due: selectedProduct != null ? selectedProduct.price * quantity : 0
+      due: selectedProduct != null ? selectedProduct.price * quantity : 0,
     });
-    updateProduct();
-    getPayments();
+    updateProductAvailability();
+    generatePayments();
     onClose();
   }
 
-  // const handleOptionSetChange = (e: React.FormEvent<HTMLOptionElement>) => {
-  //   const { name, value } = e.currentTarget
-  //   setSelectedMember(value)
-  // }
+  async function initializeMonthAndYear() {
+    const months: Array<Month> = await getMonths();
+    const years: Array<Year> = await getYears();
 
-  async function paid(payment: Payment) {
-    await updateDoc(doc(database, "product_payments", payment.docId), {
-      status: "Paid",
-    });
-    getPayments();
+    setMonth(months);
+    setYear(years);
+    setCurrentMonth(
+      months.find((month) => month.value == new Date().getMonth() + 1)!
+    );
+    setCurrentYear(
+      years.find((year) => year.value == new Date().getFullYear())!
+    );
   }
 
+  async function initializeMembersAndProducts() {
+    const members: Array<Member> = await getAllMembers();
+    const products: Array<Product> = await getAvailableProducts();
+
+    setMembers(members);
+    setSelectedMember(members[0]);
+    setProducts(products);
+    setSelectedProduct(products[0]);
+  }
   useEffect(() => {
-    getMonths();
-    getYears();
+    initializeMonthAndYear();
+    initializeMembersAndProducts();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    getPayments();
+    generatePayments();
   }, [currentMonth, currentYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
-      {!isMobile ? (
-        <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={5} />
-        </Box>
-      ) : (
-        <Box width="18%" pos="fixed">
-          <SideNav navIndex={5} />
-        </Box>
-      )}
+      <NavigationBar navIndex={5} />
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
         <Stack direction="column" spacing={8} px={[2, null, 10]} py={10}>
           <Text as="b" fontSize="2xl" color="black">
@@ -418,7 +273,6 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                   <Th>Quantity</Th>
                   <Th>DUE</Th>
                   <Th>STATUS</Th>
-                  <Th w="12"></Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -443,20 +297,6 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                     <Td>{payment.quantity.toString()}</Td>
                     <Td>{payment.due.toString()}</Td>
                     <Td>{payment.status}</Td>
-                    {/* {payment.status === "Due" ? (
-                      <Td>
-                        <Button
-                          w="28"
-                          leftIcon={<IoCheckmarkDone size="20" />}
-                          py="6"
-                          mt="1"
-                        >
-                          Paid
-                        </Button>
-                      </Td>
-                    ) : (
-                      <></>
-                    )} */}
                   </Tr>
                 ))}
               </Tbody>
@@ -475,6 +315,15 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                     color: "gray",
                     cursor: 3,
                   }}
+                  onClick={() =>
+                    router.push({
+                      pathname: "../payments/productpaymentedit",
+                      query: {
+                        formType: "edit",
+                        paymentId: payment.docId,
+                      },
+                    })
+                  }
                 >
                   <HStack spacing={12}>
                     <Stack direction="column" px={6} py={4}>
@@ -488,21 +337,12 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                         {payment.quantity.toString()}
                       </Text>
                       <Text fontSize="sm" color="black">
-                        {payment.product.price}
+                        {payment.due.toString()}
                       </Text>
                       <Text fontSize="sm" color="black">
                         {payment.status}
                       </Text>
                     </Stack>
-                    {/* {payment.status === "Due" ? (
-                      <VStack>
-                        <IconButton
-                          aria-label="Send Reminder Message"
-                          icon={<IoCheckmarkDone />}
-                          onClick={() => paid(payment)}
-                        />
-                      </VStack>
-                    ) : null} */}
                   </HStack>
                 </Box>
               ))}
@@ -568,7 +408,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
             </FormControl>
             <FormControl>
               <FormLabel>Quantity</FormLabel>
-              <Input name="quantity" onChange={handleInputChange} />
+              <Input name="quantity" onChange={handleInputChange} defaultValue={1} />
             </FormControl>
           </ModalBody>
           <ModalFooter>

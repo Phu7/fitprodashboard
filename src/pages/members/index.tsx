@@ -37,114 +37,39 @@ import { database } from "../../firebaseConfig";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
-
-interface Name {
-  first_name: string;
-  last_name: string;
-}
-
-interface Address {
-  city: string;
-  state: string;
-  country: string;
-}
-
-interface Member {
-  docId: string;
-  name: Name;
-  email: string;
-  mobile_phone: number;
-  joining_date: Date;
-  address: Address;
-}
-
-interface MembershipPrograms {
-  membershipProgramId: string;
-  name: string;
-}
+import { Member, MembershipProgram } from "../../types";
+import {
+  getAllMembershipPrograms,
+  getMembersForMembership
+} from "../../services/firebaseService";
+import NavigationBar from "../../components/NavigationBar";
 
 function Members() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const [membershipPrograms, setMembershipPrograms] =
-    useState<Array<MembershipPrograms>>();
+    useState<Array<MembershipProgram>>();
   const [selectedMembershipProgram, setSelectedMembershipProgram] =
-    useState<MembershipPrograms>();
+    useState<MembershipProgram>();
   const [members, setMembers] = useState<Array<Member>>();
   const router = useRouter();
-
-  // async function getAllMembers() {
-  //   const querySnapshot = await getDocs(collection(database, "members"))
-  //   let temp: Array<Member> = []
-  //   querySnapshot.forEach((doc) => {
-  //     temp.push({
-  //       id: doc.data().id,
-  //       name: {
-  //         first_name: doc.data().name.first_name,
-  //         last_name: doc.data().name.last_name
-  //       },
-  //       email: doc.data().email,
-  //       mobile_phone: doc.data().mobile_phone,
-  //       joining_date: new Date(doc.data().joining_date.seconds*1000),
-  //       address: {
-  //         city: doc.data().address.city,
-  //         state: doc.data().address.state,
-  //         country: doc.data().address.country
-  //       }
-  //     })
-  //   });
-  //   setMembers(temp)
-  // }
 
   async function getMembers() {
     let membershipProgramId: string =
       selectedMembershipProgram?.membershipProgramId ?? "";
-    const q = query(
-      collection(database, "members"),
-      where("membership_program.membershipProgramId", "==", membershipProgramId)
-    );
-    const querySnapshot = await getDocs(q);
-    let temp: Array<Member> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        name: {
-          first_name: doc.data().name.first_name,
-          last_name: doc.data().name.last_name,
-        },
-        email: doc.data().email,
-        mobile_phone: doc.data().mobile_phone,
-        joining_date: new Date(doc.data().joining_date),
-        address: {
-          city: doc.data().address.city,
-          state: doc.data().address.state,
-          country: doc.data().address.country,
-        },
-      });
-    });
-    setMembers(temp);
+
+    let members: Array<Member> = await getMembersForMembership(membershipProgramId);
+    setMembers(members);
   }
 
   async function getMembershipPrograms() {
-    const querySnapshot = await getDocs(
-      query(collection(database, "membership_programs"), orderBy("name"))
-    );
-    let temp: Array<MembershipPrograms> = [{
-      membershipProgramId: "",
-      name: "All Other Members"
-    }];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        membershipProgramId: doc.id,
-        name: doc.data().name,
-      });
-    });
-    setMembershipPrograms(temp);
-    setSelectedMembershipProgram(temp[0]);
+    let membershipPrograms: Array<MembershipProgram> =
+      await getAllMembershipPrograms();
+    setMembershipPrograms(membershipPrograms);
+    setSelectedMembershipProgram(membershipPrograms[0]);
   }
 
   useEffect(() => {
     getMembershipPrograms();
-    //getAllMembers();
   }, []);
 
   useEffect(() => {
@@ -153,15 +78,7 @@ function Members() {
 
   return (
     <>
-      {!isMobile ? (
-        <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={3} />
-        </Box>
-      ) : (
-        <Box width="18%" pos="fixed">
-          <SideNav navIndex={3} />
-        </Box>
-      )}
+      <NavigationBar navIndex={3} />
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
         <Stack direction="column" spacing={8} px={[2, null, 10]} py={10}>
           <Text as="b" fontSize="2xl" color="black">

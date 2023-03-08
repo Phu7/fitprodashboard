@@ -1,66 +1,17 @@
 import {
   Box,
-  Center,
-  Flex,
-  Square,
   Stack,
-  Table,
-  TableCaption,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
   Text,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Button,
-  IconButton,
-  Spacer,
-  HStack,
   SimpleGrid,
   VStack,
   useMediaQuery,
 } from "@chakra-ui/react";
-import {
-  IoChevronDownOutline,
-  IoBarChart,
-  IoFilter,
-  IoAdd,
-} from "react-icons/io5";
 import React, { useEffect, useState } from "react";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
 import SideNav from "../../components/SideNav";
-import { collection, getDocs, query } from "firebase/firestore";
-import { database } from "../../firebaseConfig";
-
-interface Name {
-  first_name: string;
-  last_name: string;
-}
-
-interface Address {
-  city: string;
-  state: string;
-  country: string;
-}
-
-interface MembershipPrograms {
-  membershipProgramId: string;
-  name: string;
-}
-
-interface Member {
-  docId: string;
-  name: Name;
-  email: string;
-  mobile_phone: number;
-  joining_date: Date;
-  address: Address;
-  membership_program: MembershipPrograms;
-}
+import { Member } from "../../types";
+import { getAllMembers } from "../../services/firebaseService";
+import NavigationBar from "../../components/NavigationBar";
 
 function Dashboard() {
   const [isMobile] = useMediaQuery("(max-width: 768px)");
@@ -69,57 +20,31 @@ function Dashboard() {
   const [year, setYear] = useState<number>(1);
   const [totalMembers, setTotalMembers] = useState<number>(0);
   const [generalTrainedMembers, setGeneralTrainedMembers] = useState<number>(0);
-  const [personalTrainedMembers, setPersonalTrainedMembers] = useState<number>(0);
+  const [personalTrainedMembers, setPersonalTrainedMembers] =
+    useState<number>(0);
 
-  async function getAllMembers() {
-    const q = query(collection(database, "members"));
-    const querySnapshot = await getDocs(q);
-    let temp: Array<Member> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        name: {
-          first_name: doc.data().name.first_name,
-          last_name: doc.data().name.last_name,
-        },
-        email: doc.data().email,
-        mobile_phone: doc.data().mobile_phone,
-        joining_date: new Date(doc.data().joining_date),
-        address: {
-          city: doc.data().address.city,
-          state: doc.data().address.state,
-          country: doc.data().address.country,
-        },
-        membership_program: doc.data().membership_program
-      });
+  async function generateChartDetails() {
+    let members: Array<Member> = await getAllMembers();
+
+    let personalTrainedMembers = members.filter((member) => {
+      return member.membership_program.name == "Personal Training";
+    });
+    let generalTrainedMembers = members.filter((member) => {
+      return member.membership_program.name == "General Training";
     });
 
-    let personalTrainedMembers = temp.filter(member => {
-      return member.membership_program.name == "Personal Training"
-    })
-    let generalTrainedMembers = temp.filter(member => {
-      return member.membership_program.name == "General Training"
-    })    
-    setPersonalTrainedMembers(personalTrainedMembers.length)
-    setGeneralTrainedMembers(generalTrainedMembers.length)
-    setTotalMembers(temp.length)
+    setPersonalTrainedMembers(personalTrainedMembers.length);
+    setGeneralTrainedMembers(generalTrainedMembers.length);
+    setTotalMembers(members.length);
   }
 
   useEffect(() => {
-    getAllMembers()
-  },[])
+    generateChartDetails();
+  }, []);
 
   return (
     <>
-      {!isMobile ? (
-        <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={1} />
-        </Box>
-      ) : (
-        <Box width="18%" pos="fixed">
-          <SideNav navIndex={1} />
-        </Box>
-      )}
+      <NavigationBar navIndex={1} />
       <Box pl="18%" w="98vw">
         <Stack direction="column" spacing={6} p="10">
           <Text as="b" fontSize="2xl" color="black">

@@ -66,49 +66,23 @@ import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
 import axios from "axios";
 import products from "../products";
-
-interface Name {
-  first_name: string;
-  last_name: string;
-}
-
-interface Member {
-  docId: string;
-  name: Name;
-  mobile_phone?: Number;
-}
-
-interface Template {
-  docId: string;
-  channel: string;
-  message: string;
-}
-
-interface MembershipProgram {
-  docId?: string;
-  name: string;
-  price: Number;
-}
-
-interface Payment {
-  docId: string;
-  member: Member;
-  membership_program: MembershipProgram;
-  month: Number;
-  year: Number;
-  status: string;
-}
-
-interface Month {
-  docId: string;
-  name: string;
-  value: Number;
-}
-
-interface Year {
-  docId: string;
-  value: Number;
-}
+import { Select, OptionBase } from "chakra-react-select";
+import NavigationBar from "../../components/NavigationBar";
+import {
+  addMembershipPayment,
+  getAllMembers,
+  getAllMembershipPrograms,
+  getMembershipPayments,
+  getMessageTemplate,
+  getMonths,
+  getYears,
+  updateMembershipPaymentStatus,
+} from "../../services/firebaseService";
+import { Member, MembershipPayment, MembershipProgram, Month, Template, Year } from "../../types";
+import {
+  formulateMessage,
+  validateMobileNumber,
+} from "../../services/fastsmsService";
 
 interface PaymentTypeProps {
   updatePaymentType: (value: number) => void;
@@ -126,185 +100,95 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   const router = useRouter();
   const [currentMonth, setCurrentMonth] = useState<Month>({
     docId: "",
-    name: "November",
-    value: 11,
+    name: "",
+    value: 0,
   });
   const [currentYear, setCurrentYear] = useState<Year>({
     docId: "",
-    value: 2022,
+    value: 0,
   });
-  const [payments, setPayments] = useState<Array<Payment>>();
+  const [payments, setPayments] = useState<Array<MembershipPayment>>();
 
   const generatePaymentStatements = async () => {
-    const q = query(
-      collection(database, "members"),
-      where("is_active", "==", true)
-    );
-    const members = await getDocs(q);
-
-    members.forEach(async (member) => {
-      const membershipProgramRef = doc(
-        database,
-        "membership_programs",
-        member.data().membership_program.membershipProgramId
-      );
-      const membershipProgram = await getDoc(membershipProgramRef);
-
-      if (membershipProgram.exists()) {
-        await addDoc(collection(database, "membership_payments"), {
-          member: member.data(),
-          membership_program: membershipProgram.data(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          status: "Due",
-        });
-        getPayments();
-      }
-    });
+     if (members != undefined && members != null && members.length > 0) {
+       members.forEach(async (member) => {
+        if (programs != undefined && programs != null && programs.length > 0) {
+          let membershipProgram = programs.find(
+            (program) =>
+              program.membershipProgramId ==
+              member.membership_program.membershipProgramId
+          );
+          console.log(membershipProgram)
+          await addDoc(collection(database, "membership_payments"), {
+            member: member,
+            membership_program: membershipProgram,
+            month: currentMonth.value,
+            year: currentYear.value,
+            status: "Due",
+          });
+        }
+      });
+    }
+    generatePayments();
   };
 
   async function addPayment() {
-    await addDoc(collection(database, "membership_payments"), {
-      member: selectedMember,
-      membership_program: selectedProgram,
-      month: new Date().getMonth() + 1,
-      year: new Date().getFullYear(),
+    await addMembershipPayment({
+      member: selectedMember!,
+      membership_program: selectedProgram!,
+      month: currentMonth.value,
+      year: currentYear.value,
       status: "Due",
-    });
-    getPayments();
+    })
+    generatePayments();
     onClose();
   }
 
-  async function getAllMembers() {
-    const querySnapshot = await getDocs(collection(database, "members"));
-    let temp: Array<any> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push(doc.data());
-    });
-    setMembers(temp);
-    setSelectedMember(temp[0]);
+  async function generatePayments() {
+    const payments: Array<MembershipPayment> = await getMembershipPayments(
+      currentMonth.value,
+      currentYear.value
+    );
+    setPayments(payments);
   }
 
-  async function getAllPrograms() {
-    const querySnapshot = await getDocs(
-      collection(database, "membership_programs")
-    );
-    let temp: Array<MembershipProgram> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        name: doc.data().name,
-        price: doc.data().price,
-      });
-    });
-    setPrograms(temp);
-    setSelectedProgram(temp[0]);
-  }
+  async function initializeMonthAndYear() {
+    const months: Array<Month> = await getMonths();
+    const years: Array<Year> = await getYears();
 
-  async function getPayments() {
-    const querySnapshot = await getDocs(
-      query(
-        collection(database, "membership_payments"),
-        where("month", "==", currentMonth.value),
-        where("year", "==", currentYear.value)
-      )
-    );
-    let temp: Array<Payment> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        member: doc.data().member,
-        membership_program: doc.data().membership_program,
-        month: doc.data().month,
-        status: doc.data().status,
-        year: doc.data().year,
-      });
-    });
-    setPayments(temp);
-  }
-
-  async function getMonths() {
-    const querySnapshot = await getDocs(
-      query(collection(database, "months"), orderBy("value"))
-    );
-    let temp: Array<Month> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        name: doc.data().name,
-        value: doc.data().value,
-      });
-    });
-    setMonth(temp);
+    setMonth(months);
+    setYear(years);
     setCurrentMonth(
-      temp.find((month) => month.value == new Date().getMonth() + 1)!
+      months.find((month) => month.value == new Date().getMonth() + 1)!
+    );
+    setCurrentYear(
+      years.find((year) => year.value == new Date().getFullYear())!
     );
   }
 
-  async function getYears() {
-    const querySnapshot = await getDocs(
-      query(collection(database, "years"), orderBy("value"))
-    );
-    let temp: Array<Year> = [];
-    querySnapshot.forEach((doc) => {
-      temp.push({
-        docId: doc.id,
-        value: doc.data().value,
-      });
-    });
-    setYear(temp);
-    setCurrentYear(
-      temp.find((year) => year.value == new Date().getFullYear())!
-    );
+  async function initializeMembersAndPrograms() {
+    const members: Array<Member> = await getAllMembers();
+    const programs: Array<MembershipProgram> = await getAllMembershipPrograms();
+
+    setMembers(members);
+    setSelectedMember(members[0]);
+    setPrograms(programs);
+    setSelectedProgram(programs[0]);
   }
 
   const getSMSTemplate = async () => {
-    const q = query(
-      collection(database, "templates"),
-      where("channel", "==", "sms")
-    );
-    const templateMessages = await getDocs(q);
-    let temp: Array<Template> = [];
-    templateMessages.forEach((template) =>
-      temp.push({
-        docId: template.id,
-        channel: template.data().channel,
-        message: template.data().message,
-      })
-    );
-    return temp[0];
+    const templates: Array<Template> = await getMessageTemplate("sms");
+    return templates[0];
   };
 
-  const validateMobileNumber = (number: Number) => {
-    let expr = /^(0|91)?[6-9][0-9]{9}$/;
-    alert(number);
-    if (expr.test(number.toString())) {
-      return true;
-    }
-    return false;
-  };
-
-  const sendPaymentReminderMessage = async (payment: Payment) => {
-    const templateMessage: Template = await getSMSTemplate();
-    const APIKEY =
-      "qWy2QBMZGjNh8keYimacstT7V4rHvUuwA0IldofDPxbp51FRXCYFOb3yJRfDZ1At5VsjTzlHdnGcWBw7";
-    const message =
-      "Fit Pro West. \r\nPayment reminder : Dear " +
-      payment.member.name.first_name +
-      " Your fee payment for the month is pending.";
+  const sendPaymentReminderMessage = async (payment: MembershipPayment) => {
+    const template: Template = await getSMSTemplate();
     const mobile_phone = payment.member.mobile_phone;
     if (validateMobileNumber(mobile_phone!)) {
-      const messageContent =
-        "https://www.fast2sms.com/dev/bulkV2?authorization=" +
-        APIKEY +
-        "&message=" +
-        templateMessage.message +
-        "&language=english&route=v3&numbers=" +
-        mobile_phone +
-        "&flash=0";
+      const message = formulateMessage(template, mobile_phone);
       try {
         axios
-          .get(messageContent)
+          .get(message)
           .then((response) => console.log(response.request.response));
       } catch (error) {
         console.log(error);
@@ -315,39 +199,26 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
   };
 
   function newPayment() {
-    getAllMembers();
-    getAllPrograms();
     onOpen();
   }
 
-  async function paid(payment: Payment) {
-    await updateDoc(doc(database, "membership_payments", payment.docId), {
-      status: "Paid",
-    });
-    getPayments();
+  async function paid(payment: MembershipPayment) {
+    await updateMembershipPaymentStatus(payment.docId!, "Paid");
+    generatePayments();
   }
 
   useEffect(() => {
-    getPayments();
-    getMonths();
-    getYears();
+    initializeMonthAndYear();
+    initializeMembersAndPrograms();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    getPayments();
+    generatePayments();
   }, [currentMonth, currentYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
-      {!isMobile ? (
-        <Box width="18%" pos="fixed">
-          <ExpandedSideNav navIndex={5} />
-        </Box>
-      ) : (
-        <Box width="18%" pos="fixed">
-          <SideNav navIndex={5} />
-        </Box>
-      )}
+      <NavigationBar navIndex={5} />
       <Box pl={{ base: "20%", sm: "18%" }} w="98vw">
         <Stack direction="column" spacing={8} px={[2, null, 10]} py={10}>
           <Text as="b" fontSize="2xl" color="black">
@@ -475,7 +346,10 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                           onClick={() =>
                             router.push({
                               pathname: "../payments/membershipfeepaymentedit",
-                              query: { formType: "edit", paymentId: payment.docId },
+                              query: {
+                                formType: "edit",
+                                paymentId: payment.docId,
+                              },
                             })
                           }
                         >
@@ -554,12 +428,18 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                           <IconButton
                             aria-label="Send Reminder Message"
                             icon={<IoMailUnreadOutline />}
-                            onClick={(e) =>{e.stopPropagation(); sendPaymentReminderMessage(payment)}}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              sendPaymentReminderMessage(payment);
+                            }}
                           />
                           <IconButton
                             aria-label="Send Reminder Message"
                             icon={<IoCheckmarkDone />}
-                            onClick={(e) => {e.stopPropagation(); paid(payment)}}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              paid(payment);
+                            }}
                           />
                         </VStack>
                       ) : null}
@@ -638,7 +518,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
                   <MenuList>
                     {programs?.map((record) => (
                       <MenuItem
-                        key={record.docId}
+                        // key={record.docId}
                         onClick={() => setSelectedProgram(record)}
                       >
                         {record.name}
