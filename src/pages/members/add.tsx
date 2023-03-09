@@ -115,7 +115,6 @@ function AddMember() {
     let memberId: string = router.query.memberId as string;
     let member: Member = await getMemberById(memberId);
 
-    console.log("Getched Member 1 : ", member)
     if (member != null) {
       setFormFields({
         docId: member.docId,

@@ -116,7 +116,6 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
               program.membershipProgramId ==
               member.membership_program.membershipProgramId
           );
-          console.log(membershipProgram);
           await addDoc(collection(database, "membership_payments"), {
             member: member,
             membership_program: membershipProgram,
@@ -214,7 +213,7 @@ function MembershipFeePayment({ updatePaymentType }: PaymentTypeProps) {
           .get(message)
           .then((response) => console.log(response.request.response));
       } catch (error) {
-        console.log(error);
+        alert(error);
       }
     } else {
       alert("Invalid Phone Number");
