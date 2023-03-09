@@ -405,9 +405,9 @@ export async function getProductPaymentById(paymentId: string) {
 
 export async function updateMessageTemplate(
   templateId: string,
-  message: Template
+  message: string
 ) {
-  await updateDoc(doc(database, "templates", templateId), { message });
+  await updateDoc(doc(database, "templates", templateId), {message: message});
 }
 
 export async function updateMembershipPaymentStatus(

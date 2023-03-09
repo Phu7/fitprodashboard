@@ -25,10 +25,7 @@ function Settings() {
   };
 
   const updateSMSTemplate = async () => {
-    await updateMessageTemplate(smsMessage?.docId as string, {
-      channel: "sms",
-      message: inputMessage!,
-    });
+    await updateMessageTemplate(smsMessage?.docId as string, inputMessage!)
   };
 
   const handleInputChange = (e: React.FormEvent<HTMLTextAreaElement>) => {
