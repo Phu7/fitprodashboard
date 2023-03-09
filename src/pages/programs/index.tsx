@@ -61,7 +61,7 @@ function Programs() {
   };
 
   async function addProgram() {
-    addMembershipProgram({
+    await addMembershipProgram({
       name: selectedMembershipProgram.name,
       price: Number.parseInt(selectedMembershipProgram.price.toString()),
     });
@@ -69,7 +69,7 @@ function Programs() {
   }
 
   async function updateProgram() {
-    updateMembershipProgram(selectedMembershipProgram.membershipProgramId!, {
+    await updateMembershipProgram(selectedMembershipProgram.membershipProgramId!, {
       name: selectedMembershipProgram.name,
       price: Number.parseInt(selectedMembershipProgram.price.toString()),
     });
