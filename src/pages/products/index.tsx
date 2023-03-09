@@ -24,10 +24,8 @@ import {
   IoChevronDownOutline,
   IoAdd,
 } from "react-icons/io5";
-import ExpandedSideNav from "../../components/ExpandedSideNav";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
 import { Product } from "../../types";
 import { getAvailableProducts, getUnavailableProducts } from "../../services/firebaseService";
 import NavigationBar from "../../components/NavigationBar";

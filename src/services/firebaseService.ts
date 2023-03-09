@@ -1,9 +1,4 @@
 import {
-  browserLocalPersistence,
-  setPersistence,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import {
   addDoc,
   collection,
   deleteDoc,
@@ -42,7 +37,7 @@ export async function getAllMembers() {
       },
       email: doc.data().email,
       mobile_phone: doc.data().mobile_phone,
-      joining_date: new Date(doc.data().joining_date),
+      joining_date: doc.data().joining_date,
       address: {
         city: doc.data().address.city,
         state: doc.data().address.state,
@@ -60,14 +55,7 @@ export async function getAllMembershipPrograms() {
   const querySnapshot = await getDocs(
     query(collection(database, "membership_programs"), orderBy("name"))
   );
-  let membershipPrograms: Array<MembershipProgram> = []
-  // let membershipPrograms: Array<MembershipProgram> = [
-  //   {
-  //     membershipProgramId: "",
-  //     name: "All Other Members",
-  //     price: 0,
-  //   },
-  // ];
+  let membershipPrograms: Array<MembershipProgram> = [];
   querySnapshot.forEach((doc) => {
     membershipPrograms.push({
       membershipProgramId: doc.id,
@@ -96,7 +84,7 @@ export async function getMembersForMembership(membershipProgramId: string) {
       },
       email: doc.data().email,
       mobile_phone: doc.data().mobile_phone,
-      joining_date: new Date(doc.data().joining_date),
+      joining_date: doc.data().joining_date,
       address: {
         city: doc.data().address.city,
         state: doc.data().address.state,
@@ -139,8 +127,23 @@ export async function addProductPayment(productPayment: ProductPayment) {
   await addDoc(collection(database, "product_payments"), productPayment);
 }
 
-export async function updateMember(memberId: string, member: Member) {
-  await updateDoc(doc(database, "members", memberId), { member });
+export async function updateMember(memberId: string, member: any) {
+  await updateDoc(doc(database, "members", memberId), {
+    name: {
+      first_name: member.name.first_name,
+      last_name: member.name.last_name,
+    },
+    email: member.email,
+    mobile_phone: member.mobile_phone,
+    is_active: true,
+    address: {
+      city: member.address.city,
+      state: member.address.state,
+      country: member.address.country,
+    },
+    joining_date: member.joining_date,
+    membership_program: member.membership_program,
+  });
 }
 
 export async function updateMembershipProgram(
@@ -197,7 +200,7 @@ export async function getMemberById(memberId: string) {
       },
       email: docSnapshot.data().email,
       mobile_phone: docSnapshot.data().mobile_phone,
-      joining_date: new Date(docSnapshot.data().joining_date),
+      joining_date: docSnapshot.data().joining_date,
       address: {
         city: docSnapshot.data().address.city,
         state: docSnapshot.data().address.state,
@@ -418,7 +421,7 @@ export async function updateMembershipPaymentStatus(
 
 export async function updateProductPaymentAmountAndStatus(
   paymentId: string,
-  payment: {due: Number, status: string}
+  payment: { due: Number; status: string }
 ) {
   await updateDoc(doc(database, "product_payments", paymentId), payment);
 }

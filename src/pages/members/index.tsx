@@ -1,11 +1,7 @@
 import {
   Box,
-  Center,
-  Flex,
-  Square,
   Stack,
   Table,
-  TableCaption,
   Tbody,
   Td,
   Th,
@@ -20,23 +16,16 @@ import {
   IconButton,
   Spacer,
   HStack,
-  Link,
   SimpleGrid,
 } from "@chakra-ui/react";
 import {
   IoChevronDownOutline,
-  IoSearchOutline,
-  IoFilter,
   IoAdd,
   IoPencil,
 } from "react-icons/io5";
 import React, { useEffect, useState } from "react";
-import ExpandedSideNav from "../../components/ExpandedSideNav";
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
-import { database } from "../../firebaseConfig";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
 import { Member, MembershipProgram } from "../../types";
 import {
   getAllMembershipPrograms,
@@ -175,11 +164,7 @@ function Members() {
                     <Td>{member.mobile_phone}</Td>
                     <Td>{member.email}</Td>
                     <Td>
-                      {member.joining_date.getDate() +
-                        "-" +
-                        member.joining_date.getMonth() +
-                        "-" +
-                        member.joining_date.getFullYear()}
+                      {member.joining_date}
                     </Td>
                     <Td>
                       <Button
@@ -237,11 +222,7 @@ function Members() {
                     </Text>
                     <Text fontSize="sm" color="black">
                       {"Joined On : " +
-                        member.joining_date.getDate() +
-                        "-" +
-                        member.joining_date.getMonth() +
-                        "-" +
-                        member.joining_date.getFullYear()}
+                        member.joining_date}
                     </Text>
                   </Stack>
                 </Box>

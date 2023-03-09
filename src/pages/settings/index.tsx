@@ -7,18 +7,8 @@ import {
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import {
-  query,
-  collection,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import router from "next/router";
 import React, { useEffect, useState } from "react";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
-import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
 import SideNav from "../../components/SideNav";
 import { Template } from "../../types";

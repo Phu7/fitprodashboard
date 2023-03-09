@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Button,
   Center,
@@ -35,38 +34,22 @@ import {
   IoCheckmarkDone,
   IoCloseCircle,
   IoMailUnreadOutline,
-  IoPencil,
   IoTodayOutline,
 } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import {
   IoChevronDownOutline,
-  IoSearchOutline,
-  IoFilter,
   IoAdd,
 } from "react-icons/io5";
-import ExpandedSideNav from "../../components/ExpandedSideNav";
 import {
   addDoc,
   collection,
-  doc,
-  Firestore,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  QueryDocumentSnapshot,
-  updateDoc,
-  where,
 } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
 import axios from "axios";
-import products from "../products";
-import { Select, OptionBase } from "chakra-react-select";
+import { Select } from "chakra-react-select";
 import NavigationBar from "../../components/NavigationBar";
 import {
   addMembershipPayment,

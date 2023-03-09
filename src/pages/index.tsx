@@ -1,8 +1,6 @@
-import { Avatar, Wrap, WrapItem } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Dashboard from "./dashboard";
-import Programs from "./programs";
 
 const Home: NextPage = () => {
   return (

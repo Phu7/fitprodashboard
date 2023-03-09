@@ -3,17 +3,12 @@ import {
   Button,
   HStack,
   Text,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Stack,
   FormControl,
   FormLabel,
   Input,
   GridItem,
   Grid,
-  Select,
   Spacer,
   AlertDialog,
   AlertDialogBody,
@@ -23,29 +18,15 @@ import {
   AlertDialogOverlay,
   useDisclosure,
 } from "@chakra-ui/react";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-} from "firebase/firestore";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  IoAdd,
-  IoChevronDownOutline,
   IoSave,
-  IoSaveOutline,
   IoTrashOutline,
 } from "react-icons/io5";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
-import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
-import { MembershipPayment, ProductPayment } from "../../types";
+import { MembershipPayment } from "../../types";
 import {
   deleteMembershipPayment,
   getMembershipPaymentById,
@@ -71,7 +52,7 @@ function EditFeePayment() {
       },
       email: "",
       mobile_phone: 0,
-      joining_date: new Date(),
+      joining_date: "",
       address: {
         city: "",
         state: "",

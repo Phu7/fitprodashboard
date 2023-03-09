@@ -29,17 +29,13 @@ import {
   useDisclosure,
   useMediaQuery,
   SimpleGrid,
-  VStack,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { IoChevronDownOutline, IoAdd, IoCheckmarkDone } from "react-icons/io5";
+import { IoChevronDownOutline, IoAdd } from "react-icons/io5";
 import { useRouter } from "next/router";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { database } from "../../firebaseConfig";
 import NavigationBar from "../../components/NavigationBar";
 import {
   Member,
-  MembershipProgram,
   Month,
   Product,
   ProductPayment,

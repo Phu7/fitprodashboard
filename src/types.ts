@@ -19,7 +19,7 @@ export interface Member {
   name: Name;
   email: string;
   mobile_phone: number;
-  joining_date: Date;
+  joining_date: string;
   address: Address;
   membership_program: MembershipProgram;
   is_active?: boolean
@@ -77,3 +77,16 @@ export interface ProductPayment {
   due: Number;
 }
 
+export interface MemberFormFields {
+  docId?: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  mobile_phone: number;
+  joining_date: string;
+  city: string;
+  state: string;
+  country: string;
+  membership_program: MembershipProgram;
+  is_active?: boolean;
+}

@@ -1,30 +1,9 @@
 import {
   Box,
-  Center,
-  Flex,
-  Square,
   Stack,
-  Table,
-  TableCaption,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
   Text,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Button,
-  IconButton,
-  Spacer,
-  HStack,
-  Link,
   SimpleGrid,
-  VStack,
-  Grid,
-  GridItem,
   useDisclosure,
   FormControl,
   FormLabel,
@@ -38,30 +17,11 @@ import {
   ModalOverlay,
 } from "@chakra-ui/react";
 import {
-  IoChevronDownOutline,
-  IoSearchOutline,
-  IoFilter,
   IoAdd,
-  IoPencil,
 } from "react-icons/io5";
 import React, { useEffect, useState } from "react";
-import ExpandedSideNav from "../../components/ExpandedSideNav";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
-import { auth, database } from "../../firebaseConfig";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
-import { useAuthState } from "react-firebase-hooks/auth";
 import { useAuth } from "../../context/AuthContext";
 import { MembershipProgram } from "../../types";
 import {

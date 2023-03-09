@@ -3,10 +3,6 @@ import {
   Button,
   HStack,
   Text,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Stack,
   FormControl,
   FormLabel,
@@ -23,30 +19,15 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from "@chakra-ui/react";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-} from "firebase/firestore";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  IoAdd,
-  IoChevronDownOutline,
-  IoRemove,
   IoSave,
-  IoSaveOutline,
   IoTrashOutline,
 } from "react-icons/io5";
 import ExpandedSideNav from "../../components/ExpandedSideNav";
-import { database } from "../../firebaseConfig";
 import { useMediaQuery } from "@chakra-ui/react";
-import SideNav from "../../components/SideNav";
-import { MembershipPrograms, Member } from "../../types";
+import { MembershipProgram, Member, MemberFormFields } from "../../types";
 import {
   addMember,
   deleteMember,
@@ -55,44 +36,49 @@ import {
   updateMember,
 } from "../../services/firebaseService";
 
+
 function AddMember() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef(null);
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const router = useRouter();
   const [membershipPrograms, setMembershipPrograms] =
-    useState<Array<MembershipPrograms>>();
+    useState<Array<MembershipProgram>>();
   const [member, setMember] = useState<Member>();
-  const [formFields, setFormFields] = useState<>({
+  const [formFields, setFormFields] = useState<MemberFormFields>({
     docId: "",
     first_name: "",
     last_name: "",
     email: "",
     mobile_phone: 0,
-    address_city: "",
-    address_state: "",
-    address_country: "",
-    joining_date: new Date(),
-    membershipProgramId: "",
-    membershipProgramName: "",
+    joining_date: "",
+    city: "",
+    state: "",
+    country: "",
+    membership_program: {
+      membershipProgramId: "",
+      name: "",
+      price: 0,
+    },
+    is_active: true,
   });
 
   async function addOrUpdateMember() {
     let member: Member = {
       name: {
-        first_name: formFields.name.first_name,
-        last_name: formFields.name.last_name,
+        first_name: formFields.first_name,
+        last_name: formFields.last_name,
       },
       email: formFields.email,
       mobile_phone: Number.parseInt(formFields.mobile_phone.toString()),
       is_active: true,
       address: {
-        city: formFields.address.city,
-        state: formFields.address.state,
-        country: formFields.address.country,
+        city: formFields.city,
+        state: formFields.state,
+        country: formFields.country,
       },
       joining_date: formFields.joining_date,
-      membership_program: formFields.membership_program,
+      membership_program: formFields.membership_program
     };
     router.query.formType === "new"
       ? await addMember(member)
@@ -120,7 +106,7 @@ function AddMember() {
   };
 
   async function getMembershipPrograms() {
-    let membershipProgram: Array<MembershipPrograms> =
+    let membershipProgram: Array<MembershipProgram> =
       await getAllMembershipPrograms();
     setMembershipPrograms(membershipProgram);
   }
@@ -129,21 +115,18 @@ function AddMember() {
     let memberId: string = router.query.memberId as string;
     let member: Member = await getMemberById(memberId);
 
+    console.log("Getched Member 1 : ", member)
     if (member != null) {
       setFormFields({
         docId: member.docId,
-        name: {
-          first_name: member.name.first_name,
-          last_name: member.name.last_name,
-        },
+        first_name: member.name.first_name,
+        last_name: member.name.last_name,
         email: member.email,
         mobile_phone: member.mobile_phone,
-        joining_date: new Date(member.joining_date),
-        address: {
-          city: member.address.city,
-          state: member.address.state,
-          country: member.address.country,
-        },
+        joining_date: member.joining_date,
+        city: member.address.city,
+        state: member.address.state,
+        country: member.address.country,
         membership_program: member.membership_program,
         is_active: member.is_active,
       });
@@ -233,12 +216,12 @@ function AddMember() {
               <FormControl>
                 <FormLabel>First Name</FormLabel>
                 <Input
-                  name="fname"
+                  name="first_name"
                   focusBorderColor="black"
                   placeholder="First Name"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.name.first_name}
+                  value={formFields.first_name}
                 />
               </FormControl>
             </GridItem>
@@ -246,12 +229,12 @@ function AddMember() {
               <FormControl isRequired>
                 <FormLabel>Last Name</FormLabel>
                 <Input
-                  name="lname"
+                  name="last_name"
                   focusBorderColor="black"
                   placeholder="Last Name"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.name.last_name}
+                  value={formFields.last_name}
                 />
               </FormControl>
             </GridItem>
@@ -287,12 +270,12 @@ function AddMember() {
               <FormControl isRequired>
                 <FormLabel>City</FormLabel>
                 <Input
-                  name="address_city"
+                  name="city"
                   focusBorderColor="black"
                   placeholder="City"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.address.city}
+                  value={formFields.city}
                 />
               </FormControl>
             </GridItem>
@@ -300,12 +283,12 @@ function AddMember() {
               <FormControl isRequired>
                 <FormLabel>State</FormLabel>
                 <Input
-                  name="address_state"
+                  name="state"
                   focusBorderColor="black"
                   placeholder="State"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.address.state}
+                  value={formFields.state}
                 />
               </FormControl>
             </GridItem>
@@ -313,12 +296,12 @@ function AddMember() {
               <FormControl isRequired>
                 <FormLabel>Country</FormLabel>
                 <Input
-                  name="address_country"
+                  name="country"
                   focusBorderColor="black"
                   placeholder="Country"
                   size="lg"
                   onChange={handleInputChange}
-                  value={formFields.address.country}
+                  value={formFields.country}
                 />
               </FormControl>
             </GridItem>
@@ -332,7 +315,7 @@ function AddMember() {
                   placeholder="Select Date and Time"
                   size="lg"
                   onChange={handleInputChange}
-                  defaultValue={formFields.joining_date.toDateString()}
+                  value={formFields.joining_date.toString()}
                 />
               </FormControl>
             </GridItem>
