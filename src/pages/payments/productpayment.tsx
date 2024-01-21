@@ -31,7 +31,7 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { IoChevronDownOutline, IoAdd } from "react-icons/io5";
+import { IoChevronDownOutline, IoAdd, IoSearch } from "react-icons/io5";
 import { useRouter } from "next/router";
 import NavigationBar from "../../components/NavigationBar";
 import {
@@ -85,6 +85,8 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
   });
   const [quantity, setQuantity] = useState<number>(1);
   const [payments, setPayments] = useState<Array<ProductPayment>>();
+  const [displayPayments, setDisplayPayments] = useState<Array<ProductPayment>>();
+  const [searchUser, setSearchUser] = useState<string>('');
   const router = useRouter();
 
   async function generatePayments() {
@@ -93,6 +95,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
       currentYear.value
     );
     setPayments(payments);
+    setDisplayPayments(payments);
   }
 
   const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -102,6 +105,13 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
 
   function newPayment() {
     onOpen();
+  }
+
+  const searchProducts = () => {
+    const filteredProducts = payments?.filter((payment) =>
+       payment.member.name.first_name.toLowerCase().includes(searchUser.toLowerCase())
+    );
+    setDisplayPayments(filteredProducts);
   }
 
   async function updateProductAvailability(selectedProduct: Product) {
@@ -270,6 +280,8 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                 ))}
               </MenuList>
             </Menu>
+            <Input placeholder='Search User' width={500} onChange={(event) => setSearchUser(event.target.value)}/>  
+            <IconButton aria-label='Search database' icon={<IoSearch />} onClick={searchProducts} />          
             {!isMobile ? (
               <>
                 <Spacer />
@@ -314,7 +326,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
                 </Tr>
               </Thead>
               <Tbody>
-                {payments?.map((payment) => (
+                {displayPayments?.map((payment) => (
                   <Tr key={payment.docId} color="black">
                     <Td>
                       <Button
@@ -341,7 +353,7 @@ function ProductPayment({ updatePaymentType }: PaymentTypeProps) {
             </Table>
           ) : (
             <SimpleGrid columns={1} spacing={4}>
-              {payments?.map((payment) => (
+              {displayPayments?.map((payment) => (
                 <Box
                   key={payment.docId}
                   display="flex"
