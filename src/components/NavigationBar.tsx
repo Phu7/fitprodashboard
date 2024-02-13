@@ -8,7 +8,7 @@ function NavigationBar({ navIndex }: { navIndex: number }) {
   return (
     <>
       {!isMobile ? (
-        <Box width="18%" pos="fixed">
+        <Box width="20%" pos="fixed">
           <ExpandedSideNav navIndex={navIndex} />
         </Box>
       ) : (
