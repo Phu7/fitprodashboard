@@ -6,10 +6,10 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Fit Pro West Dashboard</title>
-        <meta name="description" content="Fit Pro Dashboard" />
+        <title>Ironberg Dashboard</title>
+        <meta name="description" content="Ironberg Dashboard" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="appli-touch-icon" href="/appli-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </Head>
 
       <Dashboard />
